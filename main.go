@@ -13,6 +13,7 @@ type Leaf struct {
 	X          int
 	Y          int
 	Charactere rune
+	Speed      int
 }
 
 func PrintAt(x, y int, char rune) {
@@ -43,14 +44,18 @@ func main() {
 		default:
 			randomChar = '~'
 		}
-		leaves = append(leaves, Leaf{X: randomX, Y: randomY, Charactere: randomChar})
+		randomSpeed := rand.IntN(5)
+		if randomSpeed == 0 {
+			randomSpeed++
+		}
+		leaves = append(leaves, Leaf{X: randomX, Y: randomY, Charactere: randomChar, Speed: randomSpeed})
 
 	}
 	for {
 		screen.Clear()
 		//terminalWidth, terminalHeight, _ := terminal.GetSize(0)
 		for id := range leaves {
-			leaves[id].Y++
+			leaves[id].Y = leaves[id].Y + leaves[id].Speed
 			PrintAt(leaves[id].X, leaves[id].Y, leaves[id].Charactere)
 
 		}
