@@ -20,6 +20,9 @@ func PrintAt(x, y int, char rune) {
 	fmt.Printf("\033[?25l\033[%d;%dH%c", y+1, x+1, char)
 	//fmt.Print(x, ", ", y)
 }
+func generateLeaves() {
+
+}
 func main() {
 	terminalWidth, _, _ := terminal.GetSize(0)
 
@@ -52,12 +55,42 @@ func main() {
 
 	}
 	for {
+		terminalWidth, terminalHeight, _ := terminal.GetSize(0)
+
 		screen.Clear()
 		//terminalWidth, terminalHeight, _ := terminal.GetSize(0)
 		for id := range leaves {
 			leaves[id].Y = leaves[id].Y + leaves[id].Speed
 			PrintAt(leaves[id].X, leaves[id].Y, leaves[id].Charactere)
+			if leaves[id].Y >= terminalHeight {
+				randomX := rand.IntN(terminalWidth)
+				randomY := 0
+				randomCharNum := rand.IntN(5)
+				var randomChar rune
+				switch randomCharNum {
+				case 0:
+					randomChar = '0'
+				case 1:
+					randomChar = '*'
+				case 2:
+					randomChar = 'o'
+				case 3:
+					randomChar = '¤'
+				case 4:
+					randomChar = '`'
+				default:
+					randomChar = '~'
+				}
+				randomSpeed := rand.IntN(5)
+				if randomSpeed == 0 {
+					randomSpeed++
+				}
+				leaves[id].Y = randomY
+				leaves[id].X = randomX
+				leaves[id].Charactere = randomChar
+				leaves[id].Speed = randomSpeed
 
+			}
 		}
 		time.Sleep(100000000)
 
