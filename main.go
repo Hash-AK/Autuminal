@@ -20,37 +20,41 @@ func PrintAt(x, y int, char rune) {
 	//fmt.Print(x, ", ", y)
 }
 func main() {
+	terminalWidth, _, _ := terminal.GetSize(0)
+
 	defer fmt.Printf("\033[?25h")
-	leaf1 := Leaf{
-		X:          40,
-		Y:          0,
-		Charactere: '0',
+	var leaves []Leaf
+	for count := 0; count <= 20; count++ {
+		randomX := rand.IntN(terminalWidth)
+		randomY := 0
+		randomCharNum := rand.IntN(5)
+		var randomChar rune
+		switch randomCharNum {
+		case 0:
+			randomChar = '0'
+		case 1:
+			randomChar = '*'
+		case 2:
+			randomChar = 'o'
+		case 3:
+			randomChar = '¤'
+		case 4:
+			randomChar = '`'
+		default:
+			randomChar = '~'
+		}
+		leaves = append(leaves, Leaf{X: randomX, Y: randomY, Charactere: randomChar})
+
 	}
-	fmt.Println("bob")
 	for {
 		screen.Clear()
-		terminalWidth, terminalHeight, _ := terminal.GetSize(0)
+		//terminalWidth, terminalHeight, _ := terminal.GetSize(0)
+		for id := range leaves {
+			leaves[id].Y++
+			PrintAt(leaves[id].X, leaves[id].Y, leaves[id].Charactere)
 
-		leaf1.Y++
-		PrintAt(leaf1.X, leaf1.Y, leaf1.Charactere)
-		time.Sleep(100000000)
-		if leaf1.Y == terminalHeight {
-			leaf1.Y = 0
-			leaf1.X = rand.IntN(terminalWidth)
-			randomChar := rand.IntN(4)
-			switch randomChar {
-			case 0:
-				leaf1.Charactere = '0'
-			case 1:
-				leaf1.Charactere = '*'
-			case 2:
-				leaf1.Charactere = 'o'
-			case 3:
-				leaf1.Charactere = '¤'
-			default:
-				leaf1.Charactere = '~'
-			}
 		}
-	}
+		time.Sleep(100000000)
 
+	}
 }
