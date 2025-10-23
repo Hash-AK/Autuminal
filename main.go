@@ -7,7 +7,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/inancgumus/screen"
-	"golang.org/x/crypto/ssh/terminal"
+	"golang.org/x/term"
 )
 
 type Leaf struct {
@@ -28,7 +28,7 @@ func generateLeaves() {
 
 }
 func main() {
-	terminalWidth, _, _ := terminal.GetSize(0)
+	terminalWidth, _, _ := term.GetSize(0)
 	defer fmt.Printf("\033[?25h")
 	var leaves []Leaf
 	for count := 0; count <= 20; count++ {
@@ -71,7 +71,7 @@ func main() {
 
 	}
 	for {
-		terminalWidth, terminalHeight, _ := terminal.GetSize(0)
+		terminalWidth, terminalHeight, _ := term.GetSize(0)
 
 		screen.Clear()
 		//terminalWidth, terminalHeight, _ := terminal.GetSize(0)
