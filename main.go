@@ -1,8 +1,11 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
+	"log"
 	"math/rand/v2"
+	"os"
 	"time"
 
 	"github.com/fatih/color"
@@ -34,6 +37,7 @@ func main() {
 	var terminalWidth int
 	var terminalHeight int
 	var reservedHeight int
+	//var currentJournalLine string
 
 	for {
 		if w, h, err := term.GetSize(1); err == nil {
@@ -51,6 +55,15 @@ func main() {
 		time.Sleep(100 * time.Millisecond)
 	}
 	reservedHeight = terminalHeight - 4
+	//reader := bufio.NewReader(os.Stdin)
+	inputChan := make(chan string)
+	go func() {
+		reader := bufio.NewReader(os.Stdin)
+		for {
+			input, _ := reader.ReadString('\n')
+			inputChan <- input
+		}
+	}()
 	for count := 0; count <= 20; count++ {
 		randomX := rand.IntN(terminalWidth)
 		randomY := 0
@@ -94,7 +107,7 @@ func main() {
 	for {
 
 		screen.Clear()
-		//terminalWidth, terminalHeight, _ := terminal.GetSize(0)
+		terminalWidth, terminalHeight, _ = term.GetSize(0)
 		PrintAt(0, reservedHeight+1, '╭', color.FgGreen)
 		for x := 1; x < terminalWidth; x++ {
 			PrintAt(x, reservedHeight+1, '─', color.FgGreen)
@@ -105,11 +118,26 @@ func main() {
 		PrintAt(0, reservedHeight+3, '│', color.FgGreen)
 		PrintAt(terminalWidth, reservedHeight+3, '│', color.FgGreen)
 		PrintAt(0, reservedHeight+4, '╰', color.FgGreen)
+		PrintAt(2, reservedHeight+2, '>', color.FgYellow)
 		for x := 1; x < terminalWidth; x++ {
 			PrintAt(x, reservedHeight+4, '─', color.FgGreen)
 		}
 		PrintAt(terminalWidth, reservedHeight+4, '╯', color.FgGreen)
+		select {
+		case input := <-inputChan:
+			f, err := os.OpenFile("journal.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+			if err != nil {
+				log.Println(err)
+			}
+			defer f.Close()
+			now := time.Now()
+			formatedTime := now.Format("2006-01-02 15:04:05")
+			if _, err := f.WriteString(formatedTime + " : " + input); err != nil {
+				log.Println(err)
+			}
+		default:
 
+		}
 		for id := range leaves {
 			leaves[id].Y = leaves[id].Y + leaves[id].Speed
 
