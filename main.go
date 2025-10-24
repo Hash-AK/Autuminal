@@ -50,7 +50,7 @@ func main() {
 		}
 		time.Sleep(100 * time.Millisecond)
 	}
-	reservedHeight = terminalHeight - 5
+	reservedHeight = terminalHeight - 4
 	for count := 0; count <= 20; count++ {
 		randomX := rand.IntN(terminalWidth)
 		randomY := 0
@@ -100,6 +100,16 @@ func main() {
 			PrintAt(x, reservedHeight+1, '─', color.FgGreen)
 		}
 		PrintAt(terminalWidth, reservedHeight+1, '╮', color.FgGreen)
+		PrintAt(0, reservedHeight+2, '│', color.FgGreen)
+		PrintAt(terminalWidth, reservedHeight+2, '│', color.FgGreen)
+		PrintAt(0, reservedHeight+3, '│', color.FgGreen)
+		PrintAt(terminalWidth, reservedHeight+3, '│', color.FgGreen)
+		PrintAt(0, reservedHeight+4, '╰', color.FgGreen)
+		for x := 1; x < terminalWidth; x++ {
+			PrintAt(x, reservedHeight+4, '─', color.FgGreen)
+		}
+		PrintAt(terminalWidth, reservedHeight+4, '╯', color.FgGreen)
+
 		for id := range leaves {
 			leaves[id].Y = leaves[id].Y + leaves[id].Speed
 
