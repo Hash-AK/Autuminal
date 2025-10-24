@@ -59,8 +59,6 @@ func main() {
 		}
 		time.Sleep(100 * time.Millisecond)
 	}
-	reservedHeight = terminalHeight - 4
-	//reader := bufio.NewReader(os.Stdin)
 	inputChan := make(chan string)
 	doneChan := make(chan bool)
 	go func() {
@@ -130,6 +128,8 @@ func main() {
 
 		screen.Clear()
 		terminalWidth, terminalHeight, _ = term.GetSize(0)
+		reservedHeight = terminalHeight - 4
+
 		PrintAt(0, reservedHeight+1, '╭', color.FgGreen)
 		for x := 1; x < terminalWidth; x++ {
 			PrintAt(x, reservedHeight+1, '─', color.FgGreen)
@@ -147,6 +147,7 @@ func main() {
 		PrintAt(terminalWidth, reservedHeight+4, '╯', color.FgGreen)
 		fmt.Printf("\033[%d;%dH", reservedHeight+3, 4)
 		fmt.Print(currentJournalLine)
+		//PrintAt(terminalWidth-6, reservedHeight, '/', color.FgHiRed)
 		select {
 		case input := <-inputChan:
 			f, err := os.OpenFile("journal.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
