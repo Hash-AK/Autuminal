@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"log"
 	"math/rand/v2"
@@ -33,11 +32,17 @@ func generateLeaves() {
 func main() {
 	// defered later in the code  : terminalWidth, _, _ := term.GetSize(0)
 	defer fmt.Printf("\033[?25h")
+
 	var leaves []Leaf
 	var terminalWidth int
 	var terminalHeight int
 	var reservedHeight int
-	//var currentJournalLine string
+	var currentJournalLine string
+	oldState, err := term.MakeRaw(0)
+	if err != nil {
+		panic(err)
+	}
+	defer term.Restore(0, oldState)
 
 	for {
 		if w, h, err := term.GetSize(1); err == nil {
@@ -57,11 +62,30 @@ func main() {
 	reservedHeight = terminalHeight - 4
 	//reader := bufio.NewReader(os.Stdin)
 	inputChan := make(chan string)
+	doneChan := make(chan bool)
 	go func() {
-		reader := bufio.NewReader(os.Stdin)
+
+		buffer := make([]byte, 1)
+
 		for {
-			input, _ := reader.ReadString('\n')
-			inputChan <- input
+			os.Stdin.Read(buffer)
+			if buffer[0] == 3 {
+				term.Restore(0, oldState)
+				fmt.Printf("\033[?25h")
+				screen.Clear()
+				os.Exit(0)
+			}
+			if buffer[0] == 13 {
+				inputChan <- currentJournalLine
+				currentJournalLine = ""
+
+			} else if buffer[0] == 8 || buffer[0] == 127 {
+				if len(currentJournalLine) > 0 {
+					currentJournalLine = currentJournalLine[:len(currentJournalLine)-1]
+				}
+			} else {
+				currentJournalLine += string(buffer)
+			}
 		}
 	}()
 	for count := 0; count <= 20; count++ {
@@ -123,6 +147,8 @@ func main() {
 			PrintAt(x, reservedHeight+4, '─', color.FgGreen)
 		}
 		PrintAt(terminalWidth, reservedHeight+4, '╯', color.FgGreen)
+		fmt.Printf("\033[%d;%dH", reservedHeight+3, 4)
+		fmt.Print(currentJournalLine)
 		select {
 		case input := <-inputChan:
 			f, err := os.OpenFile("journal.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
