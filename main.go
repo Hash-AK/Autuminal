@@ -33,6 +33,7 @@ func main() {
 	var leaves []Leaf
 	var terminalWidth int
 	var terminalHeight int
+	var reservedHeight int
 
 	for {
 		if w, h, err := term.GetSize(1); err == nil {
@@ -49,6 +50,7 @@ func main() {
 		}
 		time.Sleep(100 * time.Millisecond)
 	}
+	reservedHeight = terminalHeight - 5
 	for count := 0; count <= 20; count++ {
 		randomX := rand.IntN(terminalWidth)
 		randomY := 0
@@ -93,10 +95,15 @@ func main() {
 
 		screen.Clear()
 		//terminalWidth, terminalHeight, _ := terminal.GetSize(0)
+		PrintAt(0, reservedHeight+1, '╭', color.FgGreen)
+		for x := 1; x < terminalWidth; x++ {
+			PrintAt(x, reservedHeight+1, '─', color.FgGreen)
+		}
+		PrintAt(terminalWidth, reservedHeight+1, '╮', color.FgGreen)
 		for id := range leaves {
 			leaves[id].Y = leaves[id].Y + leaves[id].Speed
-			PrintAt(leaves[id].X, leaves[id].Y, leaves[id].Charactere, leaves[id].Color)
-			if leaves[id].Y >= terminalHeight {
+
+			if leaves[id].Y >= reservedHeight {
 				randomX := rand.IntN(terminalWidth)
 				randomY := 0
 				randomCharNum := rand.IntN(5)
@@ -136,6 +143,9 @@ func main() {
 				leaves[id].Charactere = randomChar
 				leaves[id].Speed = randomSpeed
 				leaves[id].Color = randomColor
+			} else {
+				PrintAt(leaves[id].X, leaves[id].Y, leaves[id].Charactere, leaves[id].Color)
+
 			}
 		}
 		time.Sleep(100000000)
