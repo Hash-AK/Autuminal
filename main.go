@@ -70,10 +70,8 @@ func main() {
 		for {
 			os.Stdin.Read(buffer)
 			if buffer[0] == 3 {
-				term.Restore(0, oldState)
-				fmt.Printf("\033[?25h")
-				screen.Clear()
-				os.Exit(0)
+				doneChan <- true
+				return
 			}
 			if buffer[0] == 13 {
 				inputChan <- currentJournalLine
@@ -158,9 +156,12 @@ func main() {
 			defer f.Close()
 			now := time.Now()
 			formatedTime := now.Format("2006-01-02 15:04:05")
-			if _, err := f.WriteString(formatedTime + " : " + input); err != nil {
+			if _, err := f.WriteString(formatedTime + " : " + input + "\n"); err != nil {
 				log.Println(err)
 			}
+		case <-doneChan:
+			return
+
 		default:
 
 		}
