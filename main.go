@@ -28,9 +28,27 @@ func generateLeaves() {
 
 }
 func main() {
-	terminalWidth, _, _ := term.GetSize(0)
+	// defered later in the code  : terminalWidth, _, _ := term.GetSize(0)
 	defer fmt.Printf("\033[?25h")
 	var leaves []Leaf
+	var terminalWidth int
+	var terminalHeight int
+
+	for {
+		if w, h, err := term.GetSize(1); err == nil {
+			terminalWidth, terminalHeight = w, h
+			break
+		}
+		if w, h, err := term.GetSize(0); err == nil {
+			terminalWidth, terminalHeight = w, h
+			break
+		}
+		if w, h, err := term.GetSize(2); err == nil {
+			terminalWidth, terminalHeight = w, h
+			break
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
 	for count := 0; count <= 20; count++ {
 		randomX := rand.IntN(terminalWidth)
 		randomY := 0
@@ -70,8 +88,8 @@ func main() {
 		leaves = append(leaves, Leaf{X: randomX, Y: randomY, Charactere: randomChar, Speed: randomSpeed, Color: randomColor})
 
 	}
+
 	for {
-		terminalWidth, terminalHeight, _ := term.GetSize(0)
 
 		screen.Clear()
 		//terminalWidth, terminalHeight, _ := terminal.GetSize(0)
