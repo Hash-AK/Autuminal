@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"log"
 	"math/rand/v2"
@@ -215,6 +216,31 @@ func main() {
 		color.Set(color.FgHiYellow)
 		color.Set(color.Underline)
 		fmt.Print(time.Now().Format("Mon, 02 Jan 2006 15:04 MST"))
+		fmt.Printf("\033[%d;%dH", reservedHeight+3, textBoxBorderWidth+4)
+		color.Unset()
+		color.Set(color.FgYellow)
+		f, err := os.OpenFile("todo.txt", os.O_CREATE|os.O_RDONLY, 0644)
+		if err != nil {
+			log.Println(err)
+		}
+		defer f.Close()
+		scanner := bufio.NewScanner(f)
+		scanner.Split(bufio.ScanLines)
+		lineNum := 0
+		for scanner.Scan() {
+			fmt.Printf("\033[%d;%dH", reservedHeight+3+lineNum, textBoxBorderWidth+4)
+			line := scanner.Text()
+			todoWidth := terminalWidth - (textBoxBorderWidth + 4)
+			if len(line) > todoWidth {
+				line = line[:todoWidth]
+			}
+			fmt.Print(line)
+
+			lineNum++
+			if lineNum > 3 {
+				break
+			}
+		}
 		color.Unset()
 		//PrintAt(terminalWidth-6, reservedHeight, '/', color.FgHiRed)
 		select {
