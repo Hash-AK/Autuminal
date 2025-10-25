@@ -81,6 +81,13 @@ func main() {
 			} else if buffer[0] == 8 || buffer[0] == 127 {
 				if len(currentJournalLine) > 0 {
 					currentJournalLine = currentJournalLine[:len(currentJournalLine)-1]
+					numberOfLine = len(currentJournalLine) / textBoxWidth
+					if len(currentJournalLine)%textBoxWidth != 0 {
+						numberOfLine++
+					}
+					if numberOfLine == 0 {
+						numberOfLine = 1
+					}
 				}
 			} else {
 				currentJournalLine += string(buffer)
