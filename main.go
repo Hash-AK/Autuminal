@@ -26,9 +26,17 @@ func PrintAt(x, y int, char rune, printColor color.Attribute) {
 	color.Unset()
 	//fmt.Print(x, ", ", y)i col
 }
+
+const FgBrown = "\033[38;5;94m"
+const ColorReset = "\033[0m"
+
+func PrintAtColor(x, y int, char rune, colorCode string) {
+	fmt.Printf("\033[?25l\033[%d;%dH%s%c%s", y+1, x+1, colorCode, char, ColorReset)
+}
 func generateLeaves() {
 
 }
+
 func main() {
 	// defered later in the code  : terminalWidth, _, _ := term.GetSize(0)
 	defer fmt.Printf("\033[?25h")
@@ -40,6 +48,7 @@ func main() {
 	var currentJournalLine string
 	var numberOfLine = 1
 	var textBoxWidth int
+	var textBoxBorderWidth int
 	oldState, err := term.MakeRaw(0)
 	if err != nil {
 		panic(err)
@@ -91,7 +100,8 @@ func main() {
 				}
 			} else {
 				currentJournalLine += string(buffer)
-				textBoxWidth = terminalWidth - 4
+				//textBoxWidth = terminalWidth - 4
+				textBoxWidth = textBoxBorderWidth - 4
 				numberOfLine = len(currentJournalLine) / textBoxWidth
 				if len(currentJournalLine)%textBoxWidth != 0 {
 					numberOfLine++
@@ -145,37 +155,47 @@ func main() {
 	for {
 
 		screen.Clear()
+		//tree
+		//PrintAtColor(terminalWidth-6, reservedHeight, '🭅', FgBrown)
+		//PrintAtColor(terminalWidth-5, reservedHeight, '🮋', FgBrown)
+		//PrintAtColor(terminalWidth-4, reservedHeight, '🮋', FgBrown)
+		//PrintAtColor(terminalWidth-3, reservedHeight, '🮋', FgBrown)
+		//PrintAtColor(terminalWidth-1, reservedHeight, '🮋', FgBrown)
+		//PrintAtColor(terminalWidth, reservedHeight, '🭎', FgBrown)
+		//PrintAtColor(terminalWidth-5, reservedHeight-1, '▋', FgBrown)
+
 		terminalWidth, terminalHeight, _ = term.GetSize(0)
 		reservedHeight = terminalHeight - (3 + numberOfLine)
+		textBoxBorderWidth = terminalWidth / 1
 
 		PrintAt(0, reservedHeight+1, '╭', color.FgGreen)
-		for x := 1; x < terminalWidth; x++ {
+		for x := 1; x < textBoxBorderWidth; x++ {
 			PrintAt(x, reservedHeight+1, '─', color.FgGreen)
 		}
-		PrintAt(terminalWidth, reservedHeight+1, '╮', color.FgGreen)
+		PrintAt(textBoxBorderWidth, reservedHeight+1, '╮', color.FgGreen)
 		PrintAt(0, reservedHeight+2, '│', color.FgGreen)
-		PrintAt(terminalWidth, reservedHeight+2, '│', color.FgGreen)
+		PrintAt(textBoxBorderWidth, reservedHeight+2, '│', color.FgGreen)
 		PrintAt(2, reservedHeight+2, '>', color.FgYellow)
 		// above this line never change
 		if numberOfLine > 1 {
 			for i := 0; i < numberOfLine; i++ {
 				PrintAt(0, reservedHeight+i+3, '│', color.FgGreen)
-				PrintAt(terminalWidth, reservedHeight+3+i, '│', color.FgGreen)
+				PrintAt(textBoxBorderWidth, reservedHeight+3+i, '│', color.FgGreen)
 				PrintAt(0, terminalHeight, '╰', color.FgGreen)
-				for x := 1; x < terminalWidth; x++ {
+				for x := 1; x < textBoxBorderWidth; x++ {
 					PrintAt(x, terminalHeight, '─', color.FgGreen)
 				}
-				PrintAt(terminalWidth, reservedHeight+i+4, '╯', color.FgGreen)
+				PrintAt(textBoxBorderWidth, reservedHeight+i+4, '╯', color.FgGreen)
 
 			}
 		} else {
 			PrintAt(0, reservedHeight+3, '│', color.FgGreen)
-			PrintAt(terminalWidth, reservedHeight+3, '│', color.FgGreen)
+			PrintAt(textBoxBorderWidth, reservedHeight+3, '│', color.FgGreen)
 			PrintAt(0, reservedHeight+4, '╰', color.FgGreen)
-			for x := 1; x < terminalWidth; x++ {
+			for x := 1; x < textBoxBorderWidth; x++ {
 				PrintAt(x, reservedHeight+4, '─', color.FgGreen)
 			}
-			PrintAt(terminalWidth, reservedHeight+4, '╯', color.FgGreen)
+			PrintAt(textBoxBorderWidth, reservedHeight+4, '╯', color.FgGreen)
 
 		}
 
