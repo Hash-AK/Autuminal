@@ -5,6 +5,7 @@ import (
 	"log"
 	"math/rand/v2"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/fatih/color"
@@ -36,6 +37,23 @@ func PrintAtColor(x, y int, char rune, colorCode string) {
 func generateLeaves() {
 
 }
+func drawBox(x, y, width, height int) {
+	PrintAt(x, y, '╭', color.FgGreen)
+	for i := 1; i < width-1; i++ {
+		PrintAt(x+i, y, '─', color.FgGreen)
+	}
+	PrintAt(x+width-1, y, '╮', color.FgGreen)
+	for i := 1; i < height-1; i++ {
+		PrintAt(x, y+i, '│', color.FgGreen)
+		PrintAt(x+width-1, y+i, '│', color.FgGreen)
+	}
+	PrintAt(x, y+height-1, '╰', color.FgGreen)
+	for i := 1; i < width-1; i++ {
+		PrintAt(x+i, y+height-1, '─', color.FgGreen)
+
+	}
+	PrintAt(x+width-1, y+height-1, '╯', color.FgGreen)
+}
 
 func main() {
 	// defered later in the code  : terminalWidth, _, _ := term.GetSize(0)
@@ -49,6 +67,7 @@ func main() {
 	var numberOfLine = 1
 	var textBoxWidth int
 	var textBoxBorderWidth int
+	var dataMutex sync.Mutex
 	oldState, err := term.MakeRaw(0)
 	if err != nil {
 		panic(err)
@@ -70,8 +89,8 @@ func main() {
 		}
 		time.Sleep(100 * time.Millisecond)
 	}
-	inputChan := make(chan string)
-	doneChan := make(chan bool)
+	inputChan := make(chan string, 1)
+	doneChan := make(chan bool, 1)
 	go func() {
 
 		buffer := make([]byte, 1)
@@ -82,6 +101,7 @@ func main() {
 				doneChan <- true
 				return
 			}
+			dataMutex.Lock()
 			if buffer[0] == 13 {
 				inputChan <- currentJournalLine
 				currentJournalLine = ""
@@ -110,6 +130,7 @@ func main() {
 					numberOfLine = 1
 				}
 			}
+			dataMutex.Unlock()
 		}
 	}()
 	for count := 0; count <= 20; count++ {
@@ -165,59 +186,30 @@ func main() {
 		//PrintAtColor(terminalWidth-5, reservedHeight-1, '▋', FgBrown)
 
 		terminalWidth, terminalHeight, _ = term.GetSize(0)
-		reservedHeight = terminalHeight - (3 + numberOfLine)
 		textBoxBorderWidth = (terminalWidth / 3) * 2
-
-		PrintAt(0, reservedHeight+1, '╭', color.FgGreen)
-		for x := 1; x < textBoxBorderWidth; x++ {
-			PrintAt(x, reservedHeight+1, '─', color.FgGreen)
-		}
-		PrintAt(textBoxBorderWidth, reservedHeight+1, '╮', color.FgGreen)
-		PrintAt(0, reservedHeight+2, '│', color.FgGreen)
-		PrintAt(textBoxBorderWidth, reservedHeight+2, '│', color.FgGreen)
-		color.Set(color.BlinkSlow)
-		PrintAt(2, reservedHeight+2, '>', color.FgYellow)
-		color.Unset()
-		// above this line never change
-		if numberOfLine > 1 {
-			for i := 0; i < numberOfLine; i++ {
-				PrintAt(0, reservedHeight+i+3, '│', color.FgGreen)
-				PrintAt(textBoxBorderWidth, reservedHeight+3+i, '│', color.FgGreen)
-				PrintAt(0, terminalHeight, '╰', color.FgGreen)
-				for x := 1; x < textBoxBorderWidth; x++ {
-					PrintAt(x, terminalHeight, '─', color.FgGreen)
-
-				}
-				PrintAt(textBoxBorderWidth, terminalHeight, '╯', color.FgGreen)
-
-			}
-		} else {
-			PrintAt(0, reservedHeight+3, '│', color.FgGreen)
-			PrintAt(textBoxBorderWidth, reservedHeight+3, '│', color.FgGreen)
-			PrintAt(0, reservedHeight+4, '╰', color.FgGreen)
-			for x := 1; x < textBoxBorderWidth; x++ {
-				PrintAt(x, reservedHeight+4, '─', color.FgGreen)
-			}
-			PrintAt(textBoxBorderWidth, reservedHeight+4, '╯', color.FgGreen)
-
-		}
-
-		fmt.Printf("\033[%d;%dH", reservedHeight+3, 4)
-		//fmt.Print(currentJournalLine)
+		dataMutex.Lock()
 		textToDraw := currentJournalLine
 		lines := numberOfLine
+		currentTextBoxWidth := textBoxWidth
+		dataMutex.Unlock()
+		boxHeight := 3 + lines
+		reservedHeight = terminalHeight - boxHeight
+		drawBox(0, reservedHeight, textBoxBorderWidth, boxHeight)
+		PrintAt(2, reservedHeight+1, '>', color.FgYellow)
 		for i := 0; i < lines; i++ {
-			start := i * textBoxWidth
-			end := start + textBoxWidth
+			start := i * currentTextBoxWidth
+			end := start + currentTextBoxWidth
 			if end > len(textToDraw) {
 				end = len(textToDraw)
 			}
+			if start < end {
+				lineSubString := textToDraw[start:end]
+				y := reservedHeight + 2 + i
+				x := 4
+				fmt.Printf("\033[%d;%dH", y, x)
+				fmt.Print(lineSubString)
 
-			lineSubString := textToDraw[start:end]
-			y := reservedHeight + 3 + i
-			x := 4
-			fmt.Printf("\033[%d;%dH", y, x)
-			fmt.Print(lineSubString)
+			}
 		}
 		fmt.Printf("\033[%d;%dH", reservedHeight+2, textBoxBorderWidth+4)
 		color.Set(color.FgHiYellow)
