@@ -166,7 +166,7 @@ func main() {
 
 		terminalWidth, terminalHeight, _ = term.GetSize(0)
 		reservedHeight = terminalHeight - (3 + numberOfLine)
-		textBoxBorderWidth = terminalWidth / 2
+		textBoxBorderWidth = (terminalWidth / 3) * 2
 
 		PrintAt(0, reservedHeight+1, '╭', color.FgGreen)
 		for x := 1; x < textBoxBorderWidth; x++ {
@@ -186,8 +186,9 @@ func main() {
 				PrintAt(0, terminalHeight, '╰', color.FgGreen)
 				for x := 1; x < textBoxBorderWidth; x++ {
 					PrintAt(x, terminalHeight, '─', color.FgGreen)
+
 				}
-				PrintAt(textBoxBorderWidth, reservedHeight+i+4, '╯', color.FgGreen)
+				PrintAt(textBoxBorderWidth, terminalHeight, '╯', color.FgGreen)
 
 			}
 		} else {
@@ -221,7 +222,7 @@ func main() {
 		fmt.Printf("\033[%d;%dH", reservedHeight+2, textBoxBorderWidth+4)
 		color.Set(color.FgHiYellow)
 		color.Set(color.Underline)
-		fmt.Print(time.Now().Format("Mon, 02 Jan 2006 15:04"))
+		fmt.Print(time.Now().Format("Mon, 02 Jan 2006 15:04 MST"))
 		color.Unset()
 		//PrintAt(terminalWidth-6, reservedHeight, '/', color.FgHiRed)
 		select {
