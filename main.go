@@ -166,7 +166,7 @@ func main() {
 
 		terminalWidth, terminalHeight, _ = term.GetSize(0)
 		reservedHeight = terminalHeight - (3 + numberOfLine)
-		textBoxBorderWidth = terminalWidth / 1
+		textBoxBorderWidth = terminalWidth / 2
 
 		PrintAt(0, reservedHeight+1, '╭', color.FgGreen)
 		for x := 1; x < textBoxBorderWidth; x++ {
@@ -175,7 +175,9 @@ func main() {
 		PrintAt(textBoxBorderWidth, reservedHeight+1, '╮', color.FgGreen)
 		PrintAt(0, reservedHeight+2, '│', color.FgGreen)
 		PrintAt(textBoxBorderWidth, reservedHeight+2, '│', color.FgGreen)
+		color.Set(color.BlinkSlow)
 		PrintAt(2, reservedHeight+2, '>', color.FgYellow)
+		color.Unset()
 		// above this line never change
 		if numberOfLine > 1 {
 			for i := 0; i < numberOfLine; i++ {
@@ -216,6 +218,11 @@ func main() {
 			fmt.Printf("\033[%d;%dH", y, x)
 			fmt.Print(lineSubString)
 		}
+		fmt.Printf("\033[%d;%dH", reservedHeight+2, textBoxBorderWidth+4)
+		color.Set(color.FgHiYellow)
+		color.Set(color.Underline)
+		fmt.Print(time.Now().Format("Mon, 02 Jan 2006 15:04"))
+		color.Unset()
 		//PrintAt(terminalWidth-6, reservedHeight, '/', color.FgHiRed)
 		select {
 		case input := <-inputChan:
