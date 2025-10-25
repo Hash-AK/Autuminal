@@ -38,6 +38,8 @@ func main() {
 	var terminalHeight int
 	var reservedHeight int
 	var currentJournalLine string
+	var numberOfLine = 1
+	var textBoxWidth int
 	oldState, err := term.MakeRaw(0)
 	if err != nil {
 		panic(err)
@@ -74,6 +76,7 @@ func main() {
 			if buffer[0] == 13 {
 				inputChan <- currentJournalLine
 				currentJournalLine = ""
+				numberOfLine = 1
 
 			} else if buffer[0] == 8 || buffer[0] == 127 {
 				if len(currentJournalLine) > 0 {
@@ -81,6 +84,14 @@ func main() {
 				}
 			} else {
 				currentJournalLine += string(buffer)
+				textBoxWidth = terminalWidth - 4
+				numberOfLine = len(currentJournalLine) / textBoxWidth
+				if len(currentJournalLine)%textBoxWidth != 0 {
+					numberOfLine++
+				}
+				if numberOfLine == 0 {
+					numberOfLine = 1
+				}
 			}
 		}
 	}()
@@ -128,7 +139,7 @@ func main() {
 
 		screen.Clear()
 		terminalWidth, terminalHeight, _ = term.GetSize(0)
-		reservedHeight = terminalHeight - 4
+		reservedHeight = terminalHeight - (3 + numberOfLine)
 
 		PrintAt(0, reservedHeight+1, '╭', color.FgGreen)
 		for x := 1; x < terminalWidth; x++ {
@@ -137,16 +148,47 @@ func main() {
 		PrintAt(terminalWidth, reservedHeight+1, '╮', color.FgGreen)
 		PrintAt(0, reservedHeight+2, '│', color.FgGreen)
 		PrintAt(terminalWidth, reservedHeight+2, '│', color.FgGreen)
-		PrintAt(0, reservedHeight+3, '│', color.FgGreen)
-		PrintAt(terminalWidth, reservedHeight+3, '│', color.FgGreen)
-		PrintAt(0, reservedHeight+4, '╰', color.FgGreen)
 		PrintAt(2, reservedHeight+2, '>', color.FgYellow)
-		for x := 1; x < terminalWidth; x++ {
-			PrintAt(x, reservedHeight+4, '─', color.FgGreen)
+		// above this line never change
+		if numberOfLine > 1 {
+			for i := 0; i < numberOfLine; i++ {
+				PrintAt(0, reservedHeight+i+3, '│', color.FgGreen)
+				PrintAt(terminalWidth, reservedHeight+3+i, '│', color.FgGreen)
+				PrintAt(0, terminalHeight, '╰', color.FgGreen)
+				for x := 1; x < terminalWidth; x++ {
+					PrintAt(x, terminalHeight, '─', color.FgGreen)
+				}
+				PrintAt(terminalWidth, reservedHeight+i+4, '╯', color.FgGreen)
+
+			}
+		} else {
+			PrintAt(0, reservedHeight+3, '│', color.FgGreen)
+			PrintAt(terminalWidth, reservedHeight+3, '│', color.FgGreen)
+			PrintAt(0, reservedHeight+4, '╰', color.FgGreen)
+			for x := 1; x < terminalWidth; x++ {
+				PrintAt(x, reservedHeight+4, '─', color.FgGreen)
+			}
+			PrintAt(terminalWidth, reservedHeight+4, '╯', color.FgGreen)
+
 		}
-		PrintAt(terminalWidth, reservedHeight+4, '╯', color.FgGreen)
+
 		fmt.Printf("\033[%d;%dH", reservedHeight+3, 4)
-		fmt.Print(currentJournalLine)
+		//fmt.Print(currentJournalLine)
+		textToDraw := currentJournalLine
+		lines := numberOfLine
+		for i := 0; i < lines; i++ {
+			start := i * textBoxWidth
+			end := start + textBoxWidth
+			if end > len(textToDraw) {
+				end = len(textToDraw)
+			}
+
+			lineSubString := textToDraw[start:end]
+			y := reservedHeight + 3 + i
+			x := 4
+			fmt.Printf("\033[%d;%dH", y, x)
+			fmt.Print(lineSubString)
+		}
 		//PrintAt(terminalWidth-6, reservedHeight, '/', color.FgHiRed)
 		select {
 		case input := <-inputChan:
