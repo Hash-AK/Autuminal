@@ -249,7 +249,6 @@ func main() {
 		reservedHeight = terminalHeight - boxHeight - 1
 		screen.Clear()
 		drawTree(terminalWidth, reservedHeight+2)
-		drawTree(20, reservedHeight+2)
 
 		drawBox(0, reservedHeight, textBoxBorderWidth, boxHeight+1, color.FgGreen)
 		fmt.Printf("\033[%d;%dH", reservedHeight+1, (textBoxBorderWidth/2)-4)
