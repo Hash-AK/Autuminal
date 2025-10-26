@@ -98,35 +98,16 @@ func main() {
 		}
 		time.Sleep(100 * time.Millisecond)
 	}
-	inputChan := make(chan string, 1)
+	inputChan := make(chan byte, 10)
 	doneChan := make(chan bool, 1)
+	saveJournalChan := make(chan string, 1)
 	go func() {
 
 		buffer := make([]byte, 1)
 
 		for {
 			os.Stdin.Read(buffer)
-			switch buffer[0] {
-			case 3:
-				doneChan <- true
-				return
-			case 13:
-				dataMutex.Lock()
-				inputChan <- currentJournalLine
-				currentJournalLine = ""
-				dataMutex.Unlock()
-			case 8, 127:
-				dataMutex.Lock()
-				if len(currentJournalLine) > 0 {
-					currentJournalLine = currentJournalLine[:len(currentJournalLine)-1]
-				}
-				dataMutex.Unlock()
-			default:
-				dataMutex.Lock()
-				currentJournalLine += string(buffer)
-				dataMutex.Unlock()
-
-			}
+			inputChan <- buffer[0]
 
 		}
 	}()
@@ -171,7 +152,24 @@ func main() {
 	}
 
 	for {
+		for len(inputChan) > 0 {
+			key := <-inputChan
+			switch key {
+			case 3:
+				doneChan <- true
+				return
+			case 13:
+				saveJournalChan <- currentJournalLine
+				currentJournalLine = ""
 
+			case 8, 127:
+				if len(currentJournalLine) > 0 {
+					currentJournalLine = currentJournalLine[:len(currentJournalLine)-1]
+				}
+			default:
+				currentJournalLine += string(key)
+			}
+		}
 		terminalWidth, terminalHeight, _ = term.GetSize(0)
 		textBoxBorderWidth = (terminalWidth / 3) * 2
 		textBoxWidth = textBoxBorderWidth - 4
@@ -259,7 +257,7 @@ func main() {
 
 		//PrintAt(terminalWidth-6, reservedHeight, '/', color.FgHiRed)
 		select {
-		case input := <-inputChan:
+		case input := <-saveJournalChan:
 			f, err := os.OpenFile("journal.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 			if err != nil {
 				log.Println(err)
