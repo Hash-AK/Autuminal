@@ -29,7 +29,8 @@ func PrintAt(x, y int, char rune, printColor color.Attribute) {
 	//fmt.Print(x, ", ", y)i col
 }
 
-const FgBrown = "\033[38;5;94m"
+// const FgBrown = "\033[38;5;130m"
+const FgBrown = "\033[38;2;150;67;33m"
 const ColorReset = "\033[0m"
 
 func PrintAtColor(x, y int, char rune, colorCode string) {
@@ -38,22 +39,31 @@ func PrintAtColor(x, y int, char rune, colorCode string) {
 func generateLeaves() {
 
 }
-func drawBox(x, y, width, height int) {
-	PrintAt(x, y, '╭', color.FgGreen)
-	for i := 1; i < width-1; i++ {
-		PrintAt(x+i, y, '─', color.FgGreen)
-	}
-	PrintAt(x+width-1, y, '╮', color.FgGreen)
-	for i := 1; i < height-1; i++ {
-		PrintAt(x, y+i, '│', color.FgGreen)
-		PrintAt(x+width-1, y+i, '│', color.FgGreen)
-	}
-	PrintAt(x, y+height-1, '╰', color.FgGreen)
-	for i := 1; i < width-1; i++ {
-		PrintAt(x+i, y+height-1, '─', color.FgGreen)
+func drawTree(width, floorY int) {
+	treeX := width
+	treeHeight := 20
+	for i := 0; i < treeHeight; i++ {
+		y := floorY - i
+		PrintAtColor(treeX, y, '🮋', FgBrown)
 
 	}
-	PrintAt(x+width-1, y+height-1, '╯', color.FgGreen)
+}
+func drawBox(x, y, width, height int, colorToDraw color.Attribute) {
+	PrintAt(x, y, '╭', colorToDraw)
+	for i := 1; i < width-1; i++ {
+		PrintAt(x+i, y, '─', colorToDraw)
+	}
+	PrintAt(x+width-1, y, '╮', colorToDraw)
+	for i := 1; i < height-1; i++ {
+		PrintAt(x, y+i, '│', colorToDraw)
+		PrintAt(x+width-1, y+i, '│', colorToDraw)
+	}
+	PrintAt(x, y+height-1, '╰', colorToDraw)
+	for i := 1; i < width-1; i++ {
+		PrintAt(x+i, y+height-1, '─', colorToDraw)
+
+	}
+	PrintAt(x+width-1, y+height-1, '╯', colorToDraw)
 }
 
 func main() {
@@ -135,7 +145,7 @@ func main() {
 		}
 	}()
 	for count := 0; count <= 20; count++ {
-		randomX := rand.IntN(terminalWidth)
+		randomX := rand.IntN(terminalWidth - 1)
 		randomY := 0
 		randomCharNum := rand.IntN(5)
 		var randomChar rune
@@ -176,7 +186,6 @@ func main() {
 
 	for {
 
-		screen.Clear()
 		//tree
 		//PrintAtColor(terminalWidth-6, reservedHeight, '🭅', FgBrown)
 		//PrintAtColor(terminalWidth-5, reservedHeight, '🮋', FgBrown)
@@ -185,7 +194,6 @@ func main() {
 		//PrintAtColor(terminalWidth-1, reservedHeight, '🮋', FgBrown)
 		//PrintAtColor(terminalWidth, reservedHeight, '🭎', FgBrown)
 		//PrintAtColor(terminalWidth-5, reservedHeight-1, '▋', FgBrown)
-
 		terminalWidth, terminalHeight, _ = term.GetSize(0)
 		textBoxBorderWidth = (terminalWidth / 3) * 2
 		dataMutex.Lock()
@@ -193,9 +201,13 @@ func main() {
 		lines := numberOfLine
 		currentTextBoxWidth := textBoxWidth
 		dataMutex.Unlock()
-		boxHeight := 3 + lines
-		reservedHeight = terminalHeight - boxHeight
-		drawBox(0, reservedHeight, textBoxBorderWidth, boxHeight)
+		boxHeight := 4 + lines
+		reservedHeight = terminalHeight - boxHeight - 1
+		screen.Clear()
+
+		drawTree(terminalWidth, reservedHeight)
+
+		drawBox(0, reservedHeight, textBoxBorderWidth, boxHeight+1, color.FgGreen)
 		PrintAt(2, reservedHeight+1, '>', color.FgYellow)
 		for i := 0; i < lines; i++ {
 			start := i * currentTextBoxWidth
@@ -212,8 +224,11 @@ func main() {
 
 			}
 		}
-		fmt.Printf("\033[%d;%dH", reservedHeight+2, textBoxBorderWidth+4)
 		color.Set(color.FgHiYellow)
+		drawBox(textBoxBorderWidth, reservedHeight, terminalWidth/3, boxHeight+1, color.FgHiYellow)
+		color.Set(color.FgHiYellow)
+
+		fmt.Printf("\033[%d;%dH", reservedHeight+2, textBoxBorderWidth+3)
 		color.Set(color.Underline)
 		fmt.Print(time.Now().Format("Mon, 02 Jan 2006 15:04 MST"))
 		fmt.Printf("\033[%d;%dH", reservedHeight+3, textBoxBorderWidth+4)
@@ -228,16 +243,16 @@ func main() {
 		scanner.Split(bufio.ScanLines)
 		lineNum := 0
 		for scanner.Scan() {
-			fmt.Printf("\033[%d;%dH", reservedHeight+3+lineNum, textBoxBorderWidth+4)
+			fmt.Printf("\033[%d;%dH", reservedHeight+3+lineNum, textBoxBorderWidth+3)
 			line := scanner.Text()
-			todoWidth := terminalWidth - (textBoxBorderWidth + 4)
+			todoWidth := terminalWidth - (textBoxBorderWidth + 3)
 			if len(line) > todoWidth {
 				line = line[:todoWidth]
 			}
 			fmt.Print(line)
 
 			lineNum++
-			if lineNum > 3 {
+			if lineNum >= terminalHeight-reservedHeight-3 {
 				break
 			}
 		}
@@ -265,7 +280,7 @@ func main() {
 			leaves[id].Y = leaves[id].Y + leaves[id].Speed
 
 			if leaves[id].Y >= reservedHeight {
-				randomX := rand.IntN(terminalWidth)
+				randomX := rand.IntN(terminalWidth - 1)
 				randomY := 0
 				randomCharNum := rand.IntN(5)
 				var randomChar rune
