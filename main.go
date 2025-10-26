@@ -209,6 +209,16 @@ func main() {
 
 		drawBox(0, reservedHeight, textBoxBorderWidth, boxHeight+1, color.FgGreen)
 		PrintAt(2, reservedHeight+1, '>', color.FgYellow)
+		PrintAt((textBoxBorderWidth/2)-4, reservedHeight+4, '-', color.Underline)
+		PrintAt((textBoxBorderWidth/2)-3, reservedHeight+4, 'J', color.Underline)
+		PrintAt((textBoxBorderWidth/2)-2, reservedHeight+4, 'o', color.Underline)
+		PrintAt((textBoxBorderWidth/2)-1, reservedHeight+4, 'u', color.Underline)
+		PrintAt((textBoxBorderWidth / 2), reservedHeight+4, 'r', color.Underline)
+		PrintAt((textBoxBorderWidth/2)+1, reservedHeight+4, 'n', color.Underline)
+		PrintAt((textBoxBorderWidth/2)+2, reservedHeight+4, 'a', color.Underline)
+		PrintAt((textBoxBorderWidth/2)+3, reservedHeight+4, 'l', color.Underline)
+		PrintAt((textBoxBorderWidth/2)+4, reservedHeight+4, '-', color.Underline)
+
 		for i := 0; i < lines; i++ {
 			start := i * currentTextBoxWidth
 			end := start + currentTextBoxWidth
@@ -245,7 +255,7 @@ func main() {
 		for scanner.Scan() {
 			fmt.Printf("\033[%d;%dH", reservedHeight+3+lineNum, textBoxBorderWidth+3)
 			line := scanner.Text()
-			todoWidth := terminalWidth - (textBoxBorderWidth + 3)
+			todoWidth := terminalWidth - (textBoxBorderWidth + 4)
 			if len(line) > todoWidth {
 				line = line[:todoWidth]
 			}
