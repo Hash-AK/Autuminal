@@ -77,6 +77,7 @@ func main() {
 	var textBoxBorderWidth int
 	var dataMutex sync.Mutex
 	var boxHeight int
+	frameCount := 0
 	oldState, err := term.MakeRaw(0)
 	if err != nil {
 		panic(err)
@@ -152,6 +153,8 @@ func main() {
 	}
 
 	for {
+		frameCount++
+
 		for len(inputChan) > 0 {
 			key := <-inputChan
 			switch key {
@@ -236,7 +239,6 @@ func main() {
 		if err != nil {
 			log.Println(err)
 		}
-		defer f.Close()
 		scanner := bufio.NewScanner(f)
 		scanner.Split(bufio.ScanLines)
 		lineNum := 0
@@ -254,8 +256,8 @@ func main() {
 				break
 			}
 		}
+		f.Close()
 
-		//PrintAt(terminalWidth-6, reservedHeight, '/', color.FgHiRed)
 		select {
 		case input := <-saveJournalChan:
 			f, err := os.OpenFile("journal.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
@@ -322,7 +324,6 @@ func main() {
 
 			}
 		}
-		time.Sleep(100000000)
-
+		time.Sleep(time.Millisecond * 100)
 	}
 }
