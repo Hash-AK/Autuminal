@@ -36,9 +36,7 @@ const ColorReset = "\033[0m"
 func PrintAtColor(x, y int, char rune, colorCode string) {
 	fmt.Printf("\033[?25l\033[%d;%dH%s%c%s", y+1, x+1, colorCode, char, ColorReset)
 }
-func generateLeaves() {
 
-}
 func drawTree(width, floorY int) {
 	treeX := width
 	treeHeight := 20
@@ -108,26 +106,28 @@ func main() {
 
 		for {
 			os.Stdin.Read(buffer)
-			if buffer[0] == 3 {
+			switch buffer[0] {
+			case 3:
 				doneChan <- true
 				return
-			}
-			dataMutex.Lock()
-			if buffer[0] == 13 {
+			case 13:
+				dataMutex.Lock()
 				inputChan <- currentJournalLine
 				currentJournalLine = ""
-
-			} else if buffer[0] == 8 || buffer[0] == 127 {
+				dataMutex.Unlock()
+			case 8, 127:
+				dataMutex.Lock()
 				if len(currentJournalLine) > 0 {
 					currentJournalLine = currentJournalLine[:len(currentJournalLine)-1]
-
 				}
-			} else {
+				dataMutex.Unlock()
+			default:
+				dataMutex.Lock()
 				currentJournalLine += string(buffer)
-				//textBoxWidth = terminalWidth - 4
+				dataMutex.Unlock()
 
 			}
-			dataMutex.Unlock()
+
 		}
 	}()
 	for count := 0; count <= 20; count++ {
