@@ -79,6 +79,7 @@ func main() {
 	var textBoxWidth int
 	var textBoxBorderWidth int
 	var dataMutex sync.Mutex
+	var boxHeight int
 	oldState, err := term.MakeRaw(0)
 	if err != nil {
 		panic(err)
@@ -186,14 +187,6 @@ func main() {
 
 	for {
 
-		//tree
-		//PrintAtColor(terminalWidth-6, reservedHeight, '🭅', FgBrown)
-		//PrintAtColor(terminalWidth-5, reservedHeight, '🮋', FgBrown)
-		//PrintAtColor(terminalWidth-4, reservedHeight, '🮋', FgBrown)
-		//PrintAtColor(terminalWidth-3, reservedHeight, '🮋', FgBrown)
-		//PrintAtColor(terminalWidth-1, reservedHeight, '🮋', FgBrown)
-		//PrintAtColor(terminalWidth, reservedHeight, '🭎', FgBrown)
-		//PrintAtColor(terminalWidth-5, reservedHeight-1, '▋', FgBrown)
 		terminalWidth, terminalHeight, _ = term.GetSize(0)
 		textBoxBorderWidth = (terminalWidth / 3) * 2
 		dataMutex.Lock()
@@ -201,7 +194,12 @@ func main() {
 		lines := numberOfLine
 		currentTextBoxWidth := textBoxWidth
 		dataMutex.Unlock()
-		boxHeight := 4 + lines
+		if lines < 4 {
+			boxHeight = 4
+
+		} else {
+			boxHeight = 1 + lines
+		}
 		reservedHeight = terminalHeight - boxHeight - 1
 		screen.Clear()
 
