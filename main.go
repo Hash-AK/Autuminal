@@ -208,16 +208,12 @@ func main() {
 		drawTree(terminalWidth, reservedHeight)
 
 		drawBox(0, reservedHeight, textBoxBorderWidth, boxHeight+1, color.FgGreen)
+		fmt.Printf("\033[%d;%dH", reservedHeight+1, (textBoxBorderWidth/2)-4)
+		color.Set(color.FgGreen)
+		color.Set(color.Italic)
+		fmt.Print("─Journal─")
+		color.Unset()
 		PrintAt(2, reservedHeight+1, '>', color.FgYellow)
-		PrintAt((textBoxBorderWidth/2)-4, reservedHeight+4, '-', color.Underline)
-		PrintAt((textBoxBorderWidth/2)-3, reservedHeight+4, 'J', color.Underline)
-		PrintAt((textBoxBorderWidth/2)-2, reservedHeight+4, 'o', color.Underline)
-		PrintAt((textBoxBorderWidth/2)-1, reservedHeight+4, 'u', color.Underline)
-		PrintAt((textBoxBorderWidth / 2), reservedHeight+4, 'r', color.Underline)
-		PrintAt((textBoxBorderWidth/2)+1, reservedHeight+4, 'n', color.Underline)
-		PrintAt((textBoxBorderWidth/2)+2, reservedHeight+4, 'a', color.Underline)
-		PrintAt((textBoxBorderWidth/2)+3, reservedHeight+4, 'l', color.Underline)
-		PrintAt((textBoxBorderWidth/2)+4, reservedHeight+4, '-', color.Underline)
 
 		for i := 0; i < lines; i++ {
 			start := i * currentTextBoxWidth
@@ -234,8 +230,13 @@ func main() {
 
 			}
 		}
-		color.Set(color.FgHiYellow)
 		drawBox(textBoxBorderWidth, reservedHeight, terminalWidth/3, boxHeight+1, color.FgHiYellow)
+		color.Set(color.Italic)
+		color.Set(color.FgHiYellow)
+
+		fmt.Printf("\033[%d;%dH", reservedHeight+1, textBoxBorderWidth+(terminalWidth/3)/2-3)
+		fmt.Print("─TODO─")
+		color.Unset()
 		color.Set(color.FgHiYellow)
 
 		fmt.Printf("\033[%d;%dH", reservedHeight+2, textBoxBorderWidth+3)
@@ -266,7 +267,7 @@ func main() {
 				break
 			}
 		}
-		color.Unset()
+
 		//PrintAt(terminalWidth-6, reservedHeight, '/', color.FgHiRed)
 		select {
 		case input := <-inputChan:
