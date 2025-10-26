@@ -75,7 +75,6 @@ func main() {
 	var terminalHeight int
 	var reservedHeight int
 	var currentJournalLine string
-	var numberOfLine = 1
 	var textBoxWidth int
 	var textBoxBorderWidth int
 	var dataMutex sync.Mutex
@@ -117,30 +116,16 @@ func main() {
 			if buffer[0] == 13 {
 				inputChan <- currentJournalLine
 				currentJournalLine = ""
-				numberOfLine = 1
 
 			} else if buffer[0] == 8 || buffer[0] == 127 {
 				if len(currentJournalLine) > 0 {
 					currentJournalLine = currentJournalLine[:len(currentJournalLine)-1]
-					numberOfLine = len(currentJournalLine) / textBoxWidth
-					if len(currentJournalLine)%textBoxWidth != 0 {
-						numberOfLine++
-					}
-					if numberOfLine == 0 {
-						numberOfLine = 1
-					}
+
 				}
 			} else {
 				currentJournalLine += string(buffer)
 				//textBoxWidth = terminalWidth - 4
-				textBoxWidth = textBoxBorderWidth - 4
-				numberOfLine = len(currentJournalLine) / textBoxWidth
-				if len(currentJournalLine)%textBoxWidth != 0 {
-					numberOfLine++
-				}
-				if numberOfLine == 0 {
-					numberOfLine = 1
-				}
+
 			}
 			dataMutex.Unlock()
 		}
@@ -189,11 +174,17 @@ func main() {
 
 		terminalWidth, terminalHeight, _ = term.GetSize(0)
 		textBoxBorderWidth = (terminalWidth / 3) * 2
+		textBoxWidth = textBoxBorderWidth - 4
 		dataMutex.Lock()
 		textToDraw := currentJournalLine
-		lines := numberOfLine
 		currentTextBoxWidth := textBoxWidth
 		dataMutex.Unlock()
+		var lines int
+		if textBoxWidth > 0 {
+			lines = (len(textToDraw) / textBoxWidth) + 1
+		} else {
+			lines = 1
+		}
 		if lines < 4 {
 			boxHeight = 4
 
