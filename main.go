@@ -37,15 +37,6 @@ func PrintAtColor(x, y int, char rune, colorCode string) {
 	fmt.Printf("\033[?25l\033[%d;%dH%s%c%s", y+1, x+1, colorCode, char, ColorReset)
 }
 
-func drawTree(width, floorY int) {
-	treeX := width
-	treeHeight := 20
-	for i := 0; i < treeHeight; i++ {
-		y := floorY - i
-		PrintAtColor(treeX, y, '🮋', FgBrown)
-
-	}
-}
 func drawBox(x, y, width, height int, colorToDraw color.Attribute) {
 	PrintAt(x, y, '╭', colorToDraw)
 	for i := 1; i < width-1; i++ {
@@ -200,9 +191,7 @@ func main() {
 		}
 		reservedHeight = terminalHeight - boxHeight - 1
 		screen.Clear()
-
-		drawTree(terminalWidth, reservedHeight)
-
+		//drawTree(terminalWidth, reservedHeight)
 		drawBox(0, reservedHeight, textBoxBorderWidth, boxHeight+1, color.FgGreen)
 		fmt.Printf("\033[%d;%dH", reservedHeight+1, (textBoxBorderWidth/2)-4)
 		color.Set(color.FgGreen)
@@ -323,6 +312,6 @@ func main() {
 
 			}
 		}
-		time.Sleep(time.Millisecond * 100)
+		time.Sleep(time.Millisecond * 150)
 	}
 }
