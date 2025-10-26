@@ -1,11 +1,11 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"log"
 	"math/rand/v2"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -77,7 +77,8 @@ func main() {
 	var textBoxBorderWidth int
 	var dataMutex sync.Mutex
 	var boxHeight int
-	frameCount := 0
+	var frameCount = 0
+	var todoLines []string
 	oldState, err := term.MakeRaw(0)
 	if err != nil {
 		panic(err)
@@ -154,7 +155,12 @@ func main() {
 
 	for {
 		frameCount++
-
+		if frameCount%20 == 0 {
+			todoContent, err := os.ReadFile("todo.txt")
+			if err == nil {
+				todoLines = strings.Split(string(todoContent), "\n")
+			}
+		}
 		for len(inputChan) > 0 {
 			key := <-inputChan
 			switch key {
@@ -235,29 +241,22 @@ func main() {
 		fmt.Printf("\033[%d;%dH", reservedHeight+3, textBoxBorderWidth+4)
 		color.Unset()
 		color.Set(color.FgYellow)
-		f, err := os.OpenFile("todo.txt", os.O_CREATE|os.O_RDONLY, 0644)
-		if err != nil {
-			log.Println(err)
-		}
-		scanner := bufio.NewScanner(f)
-		scanner.Split(bufio.ScanLines)
+
 		lineNum := 0
-		for scanner.Scan() {
+		for _, line := range todoLines {
 			fmt.Printf("\033[%d;%dH", reservedHeight+3+lineNum, textBoxBorderWidth+3)
-			line := scanner.Text()
 			todoWidth := terminalWidth - (textBoxBorderWidth + 4)
 			if len(line) > todoWidth {
 				line = line[:todoWidth]
 			}
 			fmt.Print(line)
-
 			lineNum++
 			if lineNum >= terminalHeight-reservedHeight-3 {
 				break
 			}
-		}
-		f.Close()
 
+		}
+		color.Unset()
 		select {
 		case input := <-saveJournalChan:
 			f, err := os.OpenFile("journal.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
