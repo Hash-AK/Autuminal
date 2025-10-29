@@ -399,19 +399,36 @@ func main() {
 				randomY := 0
 				randomCharNum := rand.IntN(5)
 				var randomChar rune
-				switch randomCharNum {
-				case 0:
-					randomChar = '0'
-				case 1:
-					randomChar = '*'
-				case 2:
-					randomChar = 'o'
-				case 3:
-					randomChar = '¤'
-				case 4:
-					randomChar = '`'
-				default:
-					randomChar = '~'
+				if !isHacked {
+					switch randomCharNum {
+					case 0:
+						randomChar = '0'
+					case 1:
+						randomChar = '*'
+					case 2:
+						randomChar = 'o'
+					case 3:
+						randomChar = '¤'
+					case 4:
+						randomChar = '`'
+					default:
+						randomChar = '~'
+					}
+				} else {
+					switch randomCharNum {
+					case 0:
+						randomChar = '?'
+					case 1:
+						randomChar = '!'
+					case 2:
+						randomChar = '%'
+					case 3:
+						randomChar = '$'
+					case 4:
+						randomChar = '\\'
+					default:
+						randomChar = '='
+					}
 				}
 				randomSpeed := rand.IntN(5)
 				if randomSpeed == 0 {
@@ -419,15 +436,19 @@ func main() {
 				}
 				var randomColor color.Attribute
 				randomColorNum := rand.IntN(3)
-				switch randomColorNum {
-				case 0:
-					randomColor = color.FgYellow
-				case 1:
+				if !isHacked {
+					switch randomColorNum {
+					case 0:
+						randomColor = color.FgYellow
+					case 1:
+						randomColor = color.FgRed
+					case 2:
+						randomColor = color.FgHiYellow
+					case 3:
+						randomColor = color.FgHiRed
+					}
+				} else {
 					randomColor = color.FgRed
-				case 2:
-					randomColor = color.FgHiYellow
-				case 3:
-					randomColor = color.FgHiRed
 				}
 				leaves[id].Y = randomY
 				leaves[id].X = randomX
