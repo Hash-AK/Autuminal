@@ -69,7 +69,7 @@ const treeArt = `
     ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⣿⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
     ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⣿⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
     ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⣿⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-    ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⣿⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+    ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⣿⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
     ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⣿⣿⣷⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
     ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢰⣿⣿⣿⣿⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
     ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿⣿⣿⣿⣿⡆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
@@ -125,21 +125,57 @@ func PrintAtColor(x, y int, char rune, colorCode string) {
 }
 
 func drawBox(x, y, width, height int, colorToDraw color.Attribute) {
-	PrintAt(x, y, '╭', colorToDraw)
-	for i := 1; i < width-1; i++ {
-		PrintAt(x+i, y, '─', colorToDraw)
-	}
-	PrintAt(x+width-1, y, '╮', colorToDraw)
-	for i := 1; i < height-1; i++ {
-		PrintAt(x, y+i, '│', colorToDraw)
-		PrintAt(x+width-1, y+i, '│', colorToDraw)
-	}
-	PrintAt(x, y+height-1, '╰', colorToDraw)
-	for i := 1; i < width-1; i++ {
-		PrintAt(x+i, y+height-1, '─', colorToDraw)
+	if !isHacked {
+		PrintAt(x, y, '╭', colorToDraw)
+		for i := 1; i < width-1; i++ {
+			PrintAt(x+i, y, '─', colorToDraw)
+		}
+		PrintAt(x+width-1, y, '╮', colorToDraw)
+		for i := 1; i < height-1; i++ {
+			PrintAt(x, y+i, '│', colorToDraw)
+			PrintAt(x+width-1, y+i, '│', colorToDraw)
+		}
+		PrintAt(x, y+height-1, '╰', colorToDraw)
+		for i := 1; i < width-1; i++ {
+			PrintAt(x+i, y+height-1, '─', colorToDraw)
 
+		}
+		PrintAt(x+width-1, y+height-1, '╯', colorToDraw)
+	} else {
+		chance := rand.IntN(3)
+		switch chance {
+		case 0, 1:
+			PrintAt(x, y, '╭', color.FgRed)
+			for i := 1; i < width-1; i++ {
+				PrintAt(x+i, y, '─', color.FgRed)
+			}
+			PrintAt(x+width-1, y, '╮', color.FgRed)
+			for i := 1; i < height-1; i++ {
+				PrintAt(x, y+i, '│', color.FgRed)
+				PrintAt(x+width-1, y+i, '│', color.FgRed)
+			}
+			PrintAt(x, y+height-1, '╰', color.FgRed)
+			for i := 1; i < width-1; i++ {
+				PrintAt(x+i, y+height-1, '─', color.FgRed)
+
+			}
+		case 2, 3:
+			PrintAt(x, y, '╭', color.FgYellow)
+			for i := 1; i < width-1; i++ {
+				PrintAt(x+i, y, '─', color.FgYellow)
+			}
+			PrintAt(x+width-1, y, '╮', color.FgYellow)
+			for i := 1; i < height-1; i++ {
+				PrintAt(x, y+i, '│', color.FgYellow)
+				PrintAt(x+width-1, y+i, '│', color.FgYellow)
+			}
+			PrintAt(x, y+height-1, '╰', color.FgYellow)
+			for i := 1; i < width-1; i++ {
+				PrintAt(x+i, y+height-1, '─', color.FgYellow)
+
+			}
+		}
 	}
-	PrintAt(x+width-1, y+height-1, '╯', colorToDraw)
 }
 
 func main() {
