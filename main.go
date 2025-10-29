@@ -31,7 +31,12 @@ func PrintAt(x, y int, char rune, printColor color.Attribute) {
 
 // const FgBrown = "\033[38;5;130m"
 const FgBrown = "\033[38;2;150;67;33m"
+const FgRed = "\033[38;2;150;0;0m"
+
 const ColorReset = "\033[0m"
+
+var isHacked = false
+
 const treeArt = `
  ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢱⣸⠀⠀⠀⠀⠀⠀⠀⠀⡄⡄⢀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⠀⠀⠀⠀⠀⠀⠀
      ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⡀⢶⢠⠀⢀⡸⡄⠒⢺⠀⣸⣀⡀⣦⠽⠑⠁⠀⠀⠀⠀⠀⠀⠀⣆⣀⠗⠂⠀⠀⡆⢠⠃⡠⠜⠒⠀⠀⠀⠀⠀⠀
@@ -64,7 +69,7 @@ const treeArt = `
     ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⣿⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
     ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⣿⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
     ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⣿⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-    ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⣿⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+    ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⣿⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
     ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⣿⣿⣷⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
     ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢰⣿⣿⣿⣿⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
     ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿⣿⣿⣿⣿⡆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
@@ -74,20 +79,45 @@ const treeArt = `
     ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠁⠀⠀⠀⠀⠈⠡⠀⠀⠀⠀⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀`
 
 func drawTree(width, height int) {
-	lines := strings.Split(treeArt, "\n")
-	artHeight := len(lines)
-	startY := height - artHeight
-	if startY < 1 {
-		startY = 1
-	}
-	for i, line := range lines {
-		visualLen := len([]rune(line)) / 2
-		startX := (width - visualLen) / 2
-		if startX < 1 {
-			startX = 1
+	if !isHacked {
+		lines := strings.Split(treeArt, "\n")
+		artHeight := len(lines)
+		startY := height - artHeight
+		if startY < 1 {
+			startY = 1
 		}
-		y := startY + i
-		fmt.Printf("\033[%d;%dH%s%s%s", y, startX, FgBrown, line, ColorReset)
+		for i, line := range lines {
+			visualLen := len([]rune(line)) / 2
+			startX := (width - visualLen) / 2
+			if startX < 1 {
+				startX = 1
+			}
+			y := startY + i
+			fmt.Printf("\033[%d;%dH%s%s%s", y, startX, FgBrown, line, ColorReset)
+		}
+	} else {
+		chance := rand.IntN(3)
+		switch chance {
+		case 0, 1:
+			lines := strings.Split(treeArt, "\n")
+			artHeight := len(lines)
+			startY := height - artHeight
+			if startY < 1 {
+				startY = 1
+			}
+			for i, line := range lines {
+				visualLen := len([]rune(line)) / 2
+				startX := (width - visualLen) / 2
+				if startX < 1 {
+					startX = 1
+				}
+				y := startY + i
+				fmt.Printf("\033[%d;%dH%s%s%s", y, startX, FgRed, line, ColorReset)
+			}
+		case 2, 3:
+			return
+
+		}
 	}
 }
 func PrintAtColor(x, y int, char rune, colorCode string) {
@@ -315,6 +345,9 @@ func main() {
 			formatedTime := now.Format("2006-01-02 15:04:05")
 			if _, err := f.WriteString(formatedTime + " : " + input + "\n"); err != nil {
 				log.Println(err)
+			}
+			if strings.Contains(input, "scary") || strings.Contains(input, "spooky") {
+				isHacked = true
 			}
 		case <-doneChan:
 			return
