@@ -19,20 +19,22 @@ type Leaf struct {
 	Y          int
 	Charactere rune
 	Speed      int
-	Color      color.Attribute
+	Color      string
 }
 
-func PrintAt(x, y int, char rune, printColor color.Attribute) {
-	color.Set(printColor)
-	fmt.Printf("\033[?25l\033[%d;%dH%c", y+1, x+1, char)
-	color.Unset()
+func PrintAt(buffer *strings.Builder, x, y int, char rune, printColor string) {
+	output := fmt.Sprintf("\033[?25l\033[%d;%dH%s%c%s", y+1, x+1, printColor, char, ColorReset)
+	buffer.WriteString(output)
 	//fmt.Print(x, ", ", y)i col
 }
 
 // const FgBrown = "\033[38;5;130m"
 const FgBrown = "\033[38;2;150;67;33m"
 const FgRed = "\033[38;2;150;0;0m"
-
+const FgGreen = "\033[32m"
+const Italic = "\033[3m"
+const FgYellow = "\033[33m"
+const Underline = "\033[4m"
 const ColorReset = "\033[0m"
 
 var isHacked = false
@@ -78,7 +80,7 @@ const treeArt = `
     ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣰⡿⠿⠛⠻⣿⣿⠿⠿⠿⢿⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
     ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠁⠀⠀⠀⠀⠈⠡⠀⠀⠀⠀⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀`
 
-func drawTree(width, height int) {
+func drawTree(buffer *strings.Builder, width, height int) {
 	if !isHacked {
 		lines := strings.Split(treeArt, "\n")
 		artHeight := len(lines)
@@ -93,7 +95,8 @@ func drawTree(width, height int) {
 				startX = 1
 			}
 			y := startY + i
-			fmt.Printf("\033[%d;%dH%s%s%s", y, startX, FgBrown, line, ColorReset)
+			output := fmt.Sprintf("\033[%d;%dH%s%s%s", y, startX, FgBrown, line, ColorReset)
+			buffer.WriteString(output)
 		}
 	} else {
 		chance := rand.IntN(3)
@@ -112,7 +115,8 @@ func drawTree(width, height int) {
 					startX = 1
 				}
 				y := startY + i
-				fmt.Printf("\033[%d;%dH%s%s%s", y, startX, FgRed, line, ColorReset)
+				output := fmt.Sprintf("\033[%d;%dH%s%s%s", y, startX, FgRed, line, ColorReset)
+				buffer.WriteString(output)
 			}
 		case 2, 3:
 			return
@@ -120,58 +124,59 @@ func drawTree(width, height int) {
 		}
 	}
 }
-func PrintAtColor(x, y int, char rune, colorCode string) {
-	fmt.Printf("\033[?25l\033[%d;%dH%s%c%s", y+1, x+1, colorCode, char, ColorReset)
+func PrintAtColor(buffer *strings.Builder, x, y int, char rune, colorCode string) {
+	output := fmt.Sprintf("\033[?25l\033[%d;%dH%s%c%s", y+1, x+1, colorCode, char, ColorReset)
+	buffer.WriteString(output)
 }
 
-func drawBox(x, y, width, height int, colorToDraw color.Attribute) {
+func drawBox(buffer *strings.Builder, x, y, width, height int, colorToDraw string) {
 	if !isHacked {
-		PrintAt(x, y, '╭', colorToDraw)
+		PrintAt(buffer, x, y, '╭', colorToDraw)
 		for i := 1; i < width-1; i++ {
-			PrintAt(x+i, y, '─', colorToDraw)
+			PrintAt(buffer, x+i, y, '─', colorToDraw)
 		}
-		PrintAt(x+width-1, y, '╮', colorToDraw)
+		PrintAt(buffer, x+width-1, y, '╮', colorToDraw)
 		for i := 1; i < height-1; i++ {
-			PrintAt(x, y+i, '│', colorToDraw)
-			PrintAt(x+width-1, y+i, '│', colorToDraw)
+			PrintAt(buffer, x, y+i, '│', colorToDraw)
+			PrintAt(buffer, x+width-1, y+i, '│', colorToDraw)
 		}
-		PrintAt(x, y+height-1, '╰', colorToDraw)
+		PrintAt(buffer, x, y+height-1, '╰', colorToDraw)
 		for i := 1; i < width-1; i++ {
-			PrintAt(x+i, y+height-1, '─', colorToDraw)
+			PrintAt(buffer, x+i, y+height-1, '─', colorToDraw)
 
 		}
-		PrintAt(x+width-1, y+height-1, '╯', colorToDraw)
+		PrintAt(buffer, x+width-1, y+height-1, '╯', colorToDraw)
 	} else {
 		chance := rand.IntN(3)
 		switch chance {
 		case 0, 1:
-			PrintAt(x, y, '╭', color.FgRed)
+			PrintAt(buffer, x, y, '╭', FgRed)
 			for i := 1; i < width-1; i++ {
-				PrintAt(x+i, y, '─', color.FgRed)
+				PrintAt(buffer, x+i, y, '─', FgRed)
 			}
-			PrintAt(x+width-1, y, '╮', color.FgRed)
+			PrintAt(buffer, x+width-1, y, '╮', FgRed)
 			for i := 1; i < height-1; i++ {
-				PrintAt(x, y+i, '│', color.FgRed)
-				PrintAt(x+width-1, y+i, '│', color.FgRed)
+				PrintAt(buffer, x, y+i, '│', FgRed)
+				PrintAt(buffer, x+width-1, y+i, '│', FgRed)
 			}
-			PrintAt(x, y+height-1, '╰', color.FgRed)
+			PrintAt(buffer, x, y+height-1, '╰', FgRed)
 			for i := 1; i < width-1; i++ {
-				PrintAt(x+i, y+height-1, '─', color.FgRed)
+				PrintAt(buffer, x+i, y+height-1, '─', FgRed)
 
 			}
 		case 2, 3:
-			PrintAt(x, y, '╭', color.FgYellow)
+			PrintAt(buffer, x, y, '╭', FgYellow)
 			for i := 1; i < width-1; i++ {
-				PrintAt(x+i, y, '─', color.FgYellow)
+				PrintAt(buffer, x+i, y, '─', FgYellow)
 			}
-			PrintAt(x+width-1, y, '╮', color.FgYellow)
+			PrintAt(buffer, x+width-1, y, '╮', FgYellow)
 			for i := 1; i < height-1; i++ {
-				PrintAt(x, y+i, '│', color.FgYellow)
-				PrintAt(x+width-1, y+i, '│', color.FgYellow)
+				PrintAt(buffer, x, y+i, '│', FgYellow)
+				PrintAt(buffer, x+width-1, y+i, '│', FgYellow)
 			}
-			PrintAt(x, y+height-1, '╰', color.FgYellow)
+			PrintAt(buffer, x, y+height-1, '╰', FgYellow)
 			for i := 1; i < width-1; i++ {
-				PrintAt(x+i, y+height-1, '─', color.FgYellow)
+				PrintAt(buffer, x+i, y+height-1, '─', FgYellow)
 
 			}
 		}
@@ -180,6 +185,7 @@ func drawBox(x, y, width, height int, colorToDraw color.Attribute) {
 
 func main() {
 	// defered later in the code  : terminalWidth, _, _ := term.GetSize(0)
+	var buffer strings.Builder
 	defer fmt.Printf("\033[?25h")
 
 	var leaves []Leaf
@@ -246,17 +252,17 @@ func main() {
 		default:
 			randomChar = '~'
 		}
-		var randomColor color.Attribute
+		var randomColor string
 		randomColorNum := rand.IntN(3)
 		switch randomColorNum {
 		case 0:
-			randomColor = color.FgRed
+			randomColor = FgRed
 		case 1:
-			randomColor = color.FgYellow
+			randomColor = FgYellow
 		case 2:
-			randomColor = color.FgHiRed
+			randomColor = FgRed
 		case 3:
-			randomColor = color.FgHiYellow
+			randomColor = FgYellow
 
 		}
 		randomSpeed := rand.IntN(5)
@@ -314,15 +320,12 @@ func main() {
 		}
 		reservedHeight = terminalHeight - boxHeight - 1
 		screen.Clear()
-		drawTree(terminalWidth, reservedHeight+2)
+		drawTree(&buffer, terminalWidth, reservedHeight+2)
 
-		drawBox(0, reservedHeight, textBoxBorderWidth, boxHeight+1, color.FgGreen)
-		fmt.Printf("\033[%d;%dH", reservedHeight+1, (textBoxBorderWidth/2)-4)
-		color.Set(color.FgGreen)
-		color.Set(color.Italic)
-		fmt.Print("─Journal─")
-		color.Unset()
-		PrintAt(2, reservedHeight+1, '>', color.FgYellow)
+		drawBox(&buffer, 0, reservedHeight, textBoxBorderWidth, boxHeight+1, FgGreen)
+		buffer.WriteString(fmt.Sprintf("\033[%d;%dH", reservedHeight+1, (textBoxBorderWidth/2)-4))
+		buffer.WriteString("─Journal─")
+		PrintAt(&buffer, 2, reservedHeight+1, '>', FgYellow)
 
 		for i := 0; i < lines; i++ {
 			start := i * currentTextBoxWidth
@@ -334,26 +337,19 @@ func main() {
 				lineSubString := textToDraw[start:end]
 				y := reservedHeight + 2 + i
 				x := 4
-				fmt.Printf("\033[%d;%dH", y, x)
-				fmt.Print(lineSubString)
+				buffer.WriteString(fmt.Sprintf("\033[%d;%dH", y, x))
+				buffer.WriteString(fmt.Sprint(lineSubString))
 
 			}
 		}
-		drawBox(textBoxBorderWidth, reservedHeight, terminalWidth/3, boxHeight+1, color.FgHiYellow)
-		color.Set(color.Italic)
-		color.Set(color.FgHiYellow)
+		drawBox(&buffer, textBoxBorderWidth, reservedHeight, terminalWidth/3, boxHeight+1, FgYellow)
 
-		fmt.Printf("\033[%d;%dH", reservedHeight+1, textBoxBorderWidth+(terminalWidth/3)/2-3)
-		fmt.Print("─TODO─")
-		color.Unset()
-		color.Set(color.FgHiYellow)
+		buffer.WriteString(fmt.Sprintf("\033[%d;%dH", reservedHeight+1, textBoxBorderWidth+(terminalWidth/3)/2-3))
+		buffer.WriteString("─TODO─")
 
-		fmt.Printf("\033[%d;%dH", reservedHeight+2, textBoxBorderWidth+3)
-		color.Set(color.Underline)
-		fmt.Print(time.Now().Format("Mon, 02 Jan 2006 15:04 MST"))
-		fmt.Printf("\033[%d;%dH", reservedHeight+3, textBoxBorderWidth+4)
-		color.Unset()
-		color.Set(color.FgYellow)
+		buffer.WriteString(fmt.Sprintf("\033[%d;%dH", reservedHeight+2, textBoxBorderWidth+3))
+		buffer.WriteString(fmt.Sprint(time.Now().Format("Mon, 02 Jan 2006 15:04 MST")))
+		buffer.WriteString(fmt.Sprintf("\033[%d;%dH", reservedHeight+3, textBoxBorderWidth+4))
 
 		lineNum := 0
 		for _, line := range todoLines {
@@ -434,21 +430,21 @@ func main() {
 				if randomSpeed == 0 {
 					randomSpeed++
 				}
-				var randomColor color.Attribute
+				var randomColor string
 				randomColorNum := rand.IntN(3)
 				if !isHacked {
 					switch randomColorNum {
 					case 0:
-						randomColor = color.FgYellow
+						randomColor = FgYellow
 					case 1:
-						randomColor = color.FgRed
+						randomColor = FgRed
 					case 2:
-						randomColor = color.FgHiYellow
+						randomColor = FgYellow
 					case 3:
-						randomColor = color.FgHiRed
+						randomColor = FgRed
 					}
 				} else {
-					randomColor = color.FgRed
+					randomColor = FgRed
 				}
 				leaves[id].Y = randomY
 				leaves[id].X = randomX
@@ -456,7 +452,7 @@ func main() {
 				leaves[id].Speed = randomSpeed
 				leaves[id].Color = randomColor
 			} else {
-				PrintAt(leaves[id].X, leaves[id].Y, leaves[id].Charactere, leaves[id].Color)
+				PrintAt(&buffer, leaves[id].X, leaves[id].Y, leaves[id].Charactere, leaves[id].Color)
 
 			}
 		}
