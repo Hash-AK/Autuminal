@@ -273,6 +273,7 @@ func main() {
 	}
 
 	for {
+		buffer.Reset()
 		frameCount++
 		if frameCount%20 == 0 {
 			todoContent, err := os.ReadFile("todo.txt")
@@ -454,6 +455,8 @@ func main() {
 
 			}
 		}
+		screen.Clear()
+		fmt.Print(buffer.String())
 		time.Sleep(time.Millisecond * 150)
 	}
 }
