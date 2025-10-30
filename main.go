@@ -9,7 +9,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/fatih/color"
 	"github.com/inancgumus/screen"
 	"golang.org/x/term"
 )
@@ -353,19 +352,18 @@ func main() {
 
 		lineNum := 0
 		for _, line := range todoLines {
-			fmt.Printf("\033[%d;%dH", reservedHeight+3+lineNum, textBoxBorderWidth+3)
+			buffer.WriteString(fmt.Sprintf("\033[%d;%dH", reservedHeight+3+lineNum, textBoxBorderWidth+3))
 			todoWidth := terminalWidth - (textBoxBorderWidth + 4)
 			if len(line) > todoWidth {
 				line = line[:todoWidth]
 			}
-			fmt.Print(line)
+			buffer.WriteString(line)
 			lineNum++
 			if lineNum >= terminalHeight-reservedHeight-3 {
 				break
 			}
 
 		}
-		color.Unset()
 		select {
 		case input := <-saveJournalChan:
 			f, err := os.OpenFile("journal.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
