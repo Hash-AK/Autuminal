@@ -319,7 +319,6 @@ func main() {
 			boxHeight = 1 + lines
 		}
 		reservedHeight = terminalHeight - boxHeight - 1
-		screen.Clear()
 		drawTree(&buffer, terminalWidth, reservedHeight+2)
 
 		drawBox(&buffer, 0, reservedHeight, textBoxBorderWidth, boxHeight+1, FgGreen)
@@ -371,12 +370,13 @@ func main() {
 			if err != nil {
 				log.Println(err)
 			}
-			defer f.Close()
 			now := time.Now()
 			formatedTime := now.Format("2006-01-02 15:04:05")
 			if _, err := f.WriteString(formatedTime + " : " + input + "\n"); err != nil {
 				log.Println(err)
 			}
+			f.Close()
+
 			if strings.Contains(input, "scary") || strings.Contains(input, "spooky") {
 				isHacked = true
 			}
