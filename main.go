@@ -322,8 +322,7 @@ func main() {
 		drawTree(&buffer, terminalWidth, reservedHeight+2)
 
 		drawBox(&buffer, 0, reservedHeight, textBoxBorderWidth, boxHeight+1, FgGreen)
-		buffer.WriteString(fmt.Sprintf("\033[%d;%dH", reservedHeight+1, (textBoxBorderWidth/2)-4))
-		buffer.WriteString("─Journal─")
+		buffer.WriteString(fmt.Sprintf("\033[%d;%dH%s%s%s", reservedHeight+1, (textBoxBorderWidth/2)-4, FgGreen, "─Journal─", ColorReset))
 		PrintAt(&buffer, 2, reservedHeight+1, '>', FgYellow)
 
 		for i := 0; i < lines; i++ {
@@ -343,8 +342,7 @@ func main() {
 		}
 		drawBox(&buffer, textBoxBorderWidth, reservedHeight, terminalWidth/3, boxHeight+1, FgYellow)
 
-		buffer.WriteString(fmt.Sprintf("\033[%d;%dH", reservedHeight+1, textBoxBorderWidth+(terminalWidth/3)/2-3))
-		buffer.WriteString("─TODO─")
+		buffer.WriteString(fmt.Sprintf("\033[%d;%dH%s%s%s", reservedHeight+1, textBoxBorderWidth+(terminalWidth/3)/2-3, FgYellow, "─TODO─", ColorReset))
 
 		buffer.WriteString(fmt.Sprintf("\033[%d;%dH", reservedHeight+2, textBoxBorderWidth+3))
 		buffer.WriteString(fmt.Sprint(time.Now().Format("Mon, 02 Jan 2006 15:04 MST")))
