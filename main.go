@@ -48,7 +48,7 @@ const FgGray = "\033[38;5;255m"
 const Underline = "\033[4m"
 const ColorReset = "\033[0m"
 
-var tempUnit = "C"
+var tempUnit = "c"
 var enableHacked = true
 var isHacked = false
 var tempChan = make(chan string, 1)
@@ -210,7 +210,7 @@ func fetchWeather(unit string) {
 	}
 	if len(weatherData.CurrentCondition) > 0 {
 		current := weatherData.CurrentCondition[0]
-		if unit == "C" {
+		if unit == "c" {
 			temperature = current.FeelsLikeC
 
 		} else {
@@ -346,7 +346,15 @@ func main() {
 					}
 				case 't':
 					showTree = !showTree
+				case 'u':
+					if tempUnit == "c" {
+						tempUnit = "f"
+					} else {
+						tempUnit = "c"
+					}
+					go fetchWeather(tempUnit)
 				}
+
 			} else {
 				switch key {
 
@@ -582,7 +590,14 @@ func main() {
 				showTreeStatus = "[OFF]"
 			}
 			buffer.WriteString(fmt.Sprintf("\033[%d;%dH%s%s", 12, 10, showTreeText, showTreeStatus))
-
+			tempUnitText := "Weather temperature [u]nit : "
+			tempUnitValue := "celsius"
+			if tempUnit == "c" {
+				tempUnitValue = "celsius"
+			} else {
+				tempUnitValue = "fahrenheit"
+			}
+			buffer.WriteString(fmt.Sprintf("\033[%d;%dH%s<%s>", 14, 10, tempUnitText, tempUnitValue))
 		}
 
 		screen.Clear()
