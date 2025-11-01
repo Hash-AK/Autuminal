@@ -37,6 +37,7 @@ const FgGray = "\033[38;5;255m"
 const Underline = "\033[4m"
 const ColorReset = "\033[0m"
 
+var enableHacked = true
 var isHacked = false
 
 const treeArt = `
@@ -285,27 +286,39 @@ func main() {
 		}
 		for len(inputChan) > 0 {
 			key := <-inputChan
-			switch key {
-			case 3:
-				doneChan <- true
-				return
-			case 13:
-				saveJournalChan <- currentJournalLine
-				currentJournalLine = ""
+			if showSettings {
+				switch key {
 
-			case 8, 127:
-				if len(currentJournalLine) > 0 {
-					currentJournalLine = currentJournalLine[:len(currentJournalLine)-1]
-				}
-			case 27:
-				if showSettings {
+				case 27:
 					showSettings = false
+				case 's':
+					enableHacked = !enableHacked
+
 				}
-			default:
-				currentJournalLine += string(key)
+			} else {
+				switch key {
+
+				case 3:
+					doneChan <- true
+					return
+				case 13:
+					saveJournalChan <- currentJournalLine
+					currentJournalLine = ""
+
+				case 8, 127:
+					if len(currentJournalLine) > 0 {
+						currentJournalLine = currentJournalLine[:len(currentJournalLine)-1]
+					}
+
+				default:
+					currentJournalLine += string(key)
+				}
+
 			}
 		}
-
+		if !enableHacked {
+			isHacked = false
+		}
 		terminalWidth, terminalHeight, _ = term.GetSize(0)
 		textBoxBorderWidth = (terminalWidth / 3) * 2
 		textBoxWidth = textBoxBorderWidth - 4
@@ -386,13 +399,17 @@ func main() {
 					log.Println(err)
 				}
 				f.Close()
-
-				if strings.Contains(input, "scary") || strings.Contains(input, "spooky") {
-					isHacked = true
+				if enableHacked {
+					if strings.Contains(input, "scary") || strings.Contains(input, "spooky") {
+						isHacked = true
+					}
+				} else {
+					isHacked = false
 				}
 				if strings.Contains(input, "stop") {
 					isHacked = false
 				}
+
 				if strings.Contains(input, "/settings") {
 					showSettings = true
 				}
@@ -479,6 +496,12 @@ func main() {
 			title := "─Settings (Press ESC to quit)─"
 			titleX := 5 + (terminalWidth-len(title))/2
 			buffer.WriteString(fmt.Sprintf("\033[%d;%dH%s%s%s", 6, titleX, FgYellow, title, ColorReset))
+			enableHackedText := "[S]cary mode : "
+			enableHackedStatus := "[ON]"
+			if !enableHacked {
+				enableHackedStatus = "[OFF]"
+			}
+			buffer.WriteString(fmt.Sprintf("\033[%d;%dH%s%s", 8, 10, enableHackedText, enableHackedStatus))
 		}
 		screen.Clear()
 		fmt.Print(buffer.String())
