@@ -299,6 +299,7 @@ func main() {
 				currentJournalLine += string(key)
 			}
 		}
+
 		terminalWidth, terminalHeight, _ = term.GetSize(0)
 		textBoxBorderWidth = (terminalWidth / 3) * 2
 		textBoxWidth = textBoxBorderWidth - 4
@@ -378,6 +379,9 @@ func main() {
 			if strings.Contains(input, "scary") || strings.Contains(input, "spooky") {
 				isHacked = true
 			}
+			if strings.Contains(input, "stop") {
+				isHacked = false
+			}
 		case <-doneChan:
 			return
 
@@ -425,6 +429,9 @@ func main() {
 				}
 				randomSpeed := rand.IntN(5)
 				if randomSpeed == 0 {
+					randomSpeed++
+				}
+				if isHacked {
 					randomSpeed++
 				}
 				var randomColor string
