@@ -201,6 +201,7 @@ func main() {
 	var frameCount = 0
 	var todoLines []string
 	var showSettings = false
+	var leafStyle = "autumn"
 	oldState, err := term.MakeRaw(0)
 	if err != nil {
 		panic(err)
@@ -290,10 +291,19 @@ func main() {
 				switch key {
 
 				case 27:
+					screen.Clear()
+					buffer.Reset()
 					showSettings = false
+
 				case 's':
 					enableHacked = !enableHacked
+				case 'l':
+					if leafStyle == "autumn" {
+						leafStyle = "matrix"
 
+					} else {
+						leafStyle = "autumn"
+					}
 				}
 			} else {
 				switch key {
@@ -428,34 +438,45 @@ func main() {
 					randomCharNum := rand.IntN(5)
 					var randomChar rune
 					if !isHacked {
-						switch randomCharNum {
-						case 0:
-							randomChar = '0'
-						case 1:
-							randomChar = '*'
-						case 2:
-							randomChar = 'o'
-						case 3:
-							randomChar = '¤'
-						case 4:
-							randomChar = '`'
-						default:
-							randomChar = '~'
+						if leafStyle == "autumn" {
+							switch randomCharNum {
+							case 0:
+								randomChar = '0'
+							case 1:
+								randomChar = '*'
+							case 2:
+								randomChar = 'o'
+							case 3:
+								randomChar = '¤'
+							case 4:
+								randomChar = '`'
+							default:
+								randomChar = '~'
+							}
+						} else {
+							katakana := []rune("アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴ")
+							randomChar = katakana[rand.IntN(len(katakana))]
 						}
 					} else {
-						switch randomCharNum {
-						case 0:
-							randomChar = '?'
-						case 1:
-							randomChar = '!'
-						case 2:
-							randomChar = '%'
-						case 3:
-							randomChar = '$'
-						case 4:
-							randomChar = '\\'
-						default:
-							randomChar = '='
+						if leafStyle == "autumn" {
+							switch randomCharNum {
+							case 0:
+								randomChar = '?'
+							case 1:
+								randomChar = '!'
+							case 2:
+								randomChar = '%'
+							case 3:
+								randomChar = '$'
+							case 4:
+								randomChar = '\\'
+							default:
+								randomChar = '='
+							}
+						} else {
+
+							katakana := []rune("アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴ")
+							randomChar = katakana[rand.IntN(len(katakana))]
 						}
 					}
 					randomSpeed := rand.IntN(5)
@@ -468,15 +489,19 @@ func main() {
 					var randomColor string
 					randomColorNum := rand.IntN(3)
 					if !isHacked {
-						switch randomColorNum {
-						case 0:
-							randomColor = FgYellow
-						case 1:
-							randomColor = FgRed
-						case 2:
-							randomColor = FgYellow
-						case 3:
-							randomColor = FgRed
+						if leafStyle == "autumn" {
+							switch randomColorNum {
+							case 0:
+								randomColor = FgYellow
+							case 1:
+								randomColor = FgRed
+							case 2:
+								randomColor = FgYellow
+							case 3:
+								randomColor = FgRed
+							}
+						} else {
+							randomColor = FgGreen
 						}
 					} else {
 						randomColor = FgRed
@@ -502,6 +527,8 @@ func main() {
 				enableHackedStatus = "[OFF]"
 			}
 			buffer.WriteString(fmt.Sprintf("\033[%d;%dH%s%s", 8, 10, enableHackedText, enableHackedStatus))
+			leafStyleText := "[L]eaf style :"
+			buffer.WriteString(fmt.Sprintf("\033[%d;%dH%s<%s>", 10, 10, leafStyleText, leafStyle))
 		}
 		screen.Clear()
 		fmt.Print(buffer.String())
