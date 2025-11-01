@@ -219,7 +219,6 @@ func fetchWeather(unit string) {
 	}
 	finalTemp := strings.Split(strings.TrimSpace(temperature), "\n")
 	tempChan <- finalTemp[0]
-	time.Sleep(15 * time.Minute)
 }
 func main() {
 	// defered later in the code  : terminalWidth, _, _ := term.GetSize(0)
@@ -275,7 +274,12 @@ func main() {
 
 		}
 	}()
-	go fetchWeather(tempUnit)
+	go func() {
+		for {
+			fetchWeather(tempUnit)
+			time.Sleep(15 * time.Minute)
+		}
+	}()
 	for count := 0; count <= 20; count++ {
 		randomX := rand.IntN(terminalWidth - 1)
 		randomY := 0
@@ -574,7 +578,7 @@ func main() {
 			drawBox(&buffer, 5, 5, terminalWidth-10, terminalHeight-10, FgBrown)
 			title := "─Settings (Press ESC to quit)─"
 			titleX := 5 + (terminalWidth-len(title))/2
-			buffer.WriteString(fmt.Sprintf("\033[%d;%dH%s%s%s", 6, titleX, FgYellow, title, ColorReset))
+			buffer.WriteString(fmt.Sprintf("\033[%d;%dH%s%s%s", 6, titleX, FgBrown, title, ColorReset))
 			enableHackedText := "[S]cary mode : "
 			enableHackedStatus := "[ON]"
 			if !enableHacked {
