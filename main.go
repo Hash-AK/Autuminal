@@ -1,9 +1,11 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"math/rand/v2"
+	"net/http"
 	"os"
 	"strings"
 	"sync"
@@ -19,6 +21,15 @@ type Leaf struct {
 	Charactere rune
 	Speed      int
 	Color      string
+}
+type Weather struct {
+	CurrentCondition []struct {
+		FeelsLikeC  string `json:"FeelsLikeC"`
+		FeelsLikeF  string `json:"FeelsLikeF"`
+		WeatherDesc []struct {
+			Value string `json:"value"`
+		} `json:"weatherDesc"`
+	} `json:"current_condition"`
 }
 
 func PrintAt(buffer *strings.Builder, x, y int, char rune, printColor string) {
@@ -37,8 +48,10 @@ const FgGray = "\033[38;5;255m"
 const Underline = "\033[4m"
 const ColorReset = "\033[0m"
 
+var tempUnit = "C"
 var enableHacked = true
 var isHacked = false
+var tempChan = make(chan string, 1)
 
 const treeArt = `
  ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢱⣸⠀⠀⠀⠀⠀⠀⠀⠀⡄⡄⢀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⠀⠀⠀⠀⠀⠀⠀
@@ -183,7 +196,31 @@ func drawBox(buffer *strings.Builder, x, y, width, height int, colorToDraw strin
 		}
 	}
 }
+func fetchWeather(unit string) {
+	response, err := http.Get("https://wttr.in/?format=j1")
+	var temperature string
+	if err != nil {
+		tempChan <- "Weather N/A"
+	}
+	defer response.Body.Close()
+	var weatherData Weather
+	err = json.NewDecoder(response.Body).Decode(&weatherData)
+	if err != nil {
+		tempChan <- "Weather N/A"
+	}
+	if len(weatherData.CurrentCondition) > 0 {
+		current := weatherData.CurrentCondition[0]
+		if unit == "C" {
+			temperature = current.FeelsLikeC
 
+		} else {
+			temperature = current.FeelsLikeF
+		}
+	}
+	finalTemp := strings.Split(strings.TrimSpace(temperature), "\n")
+	tempChan <- finalTemp[0]
+	time.Sleep(15 * time.Minute)
+}
 func main() {
 	// defered later in the code  : terminalWidth, _, _ := term.GetSize(0)
 	var buffer strings.Builder
@@ -203,6 +240,7 @@ func main() {
 	var showSettings = false
 	var showTree = true
 	var leafStyle = "autumn"
+	var temperature string
 	oldState, err := term.MakeRaw(0)
 	if err != nil {
 		panic(err)
@@ -237,6 +275,7 @@ func main() {
 
 		}
 	}()
+	go fetchWeather(tempUnit)
 	for count := 0; count <= 20; count++ {
 		randomX := rand.IntN(terminalWidth - 1)
 		randomY := 0
@@ -329,6 +368,9 @@ func main() {
 
 			}
 		}
+		for len(tempChan) > 0 {
+			temperature = <-tempChan
+		}
 		if !enableHacked {
 			isHacked = false
 		}
@@ -398,7 +440,7 @@ func main() {
 
 			}
 			statusBarY := terminalHeight
-			statusBarText := "Ctrl+C : Quit | /settings: Open Settings"
+			statusBarText := "Ctrl+C : Quit | /settings: Open Settings" + " | " + temperature + "°" + tempUnit
 			paddedText := fmt.Sprintf("%-*s", terminalWidth, statusBarText)
 			buffer.WriteString(fmt.Sprintf("\033[%d;%dH\033[48;5;235m%s\033[49m", statusBarY, 1, paddedText))
 			select {
