@@ -201,6 +201,7 @@ func main() {
 	var frameCount = 0
 	var todoLines []string
 	var showSettings = false
+	var showTree = true
 	var leafStyle = "autumn"
 	oldState, err := term.MakeRaw(0)
 	if err != nil {
@@ -304,6 +305,8 @@ func main() {
 					} else {
 						leafStyle = "autumn"
 					}
+				case 't':
+					showTree = !showTree
 				}
 			} else {
 				switch key {
@@ -350,8 +353,9 @@ func main() {
 		}
 		reservedHeight = terminalHeight - boxHeight - 2
 		if !showSettings {
-			drawTree(&buffer, terminalWidth, reservedHeight+2)
-
+			if showTree {
+				drawTree(&buffer, terminalWidth, reservedHeight+2)
+			}
 			drawBox(&buffer, 0, reservedHeight, textBoxBorderWidth, boxHeight+1, FgGreen)
 			buffer.WriteString(fmt.Sprintf("\033[%d;%dH%s%s%s", reservedHeight+1, (textBoxBorderWidth/2)-4, FgGreen, "─Journal─", ColorReset))
 			PrintAt(&buffer, 2, reservedHeight+1, '>', FgYellow)
@@ -529,7 +533,16 @@ func main() {
 			buffer.WriteString(fmt.Sprintf("\033[%d;%dH%s%s", 8, 10, enableHackedText, enableHackedStatus))
 			leafStyleText := "[L]eaf style :"
 			buffer.WriteString(fmt.Sprintf("\033[%d;%dH%s<%s>", 10, 10, leafStyleText, leafStyle))
+
+			showTreeText := "[Tree] : "
+			showTreeStatus := "[ON]"
+			if !showTree {
+				showTreeStatus = "[OFF]"
+			}
+			buffer.WriteString(fmt.Sprintf("\033[%d;%dH%s%s", 12, 10, showTreeText, showTreeStatus))
+
 		}
+
 		screen.Clear()
 		fmt.Print(buffer.String())
 		time.Sleep(time.Millisecond * 150)
