@@ -199,6 +199,7 @@ func main() {
 	var boxHeight int
 	var frameCount = 0
 	var todoLines []string
+	var showSettings = false
 	oldState, err := term.MakeRaw(0)
 	if err != nil {
 		panic(err)
@@ -296,6 +297,10 @@ func main() {
 				if len(currentJournalLine) > 0 {
 					currentJournalLine = currentJournalLine[:len(currentJournalLine)-1]
 				}
+			case 27:
+				if showSettings {
+					showSettings = false
+				}
 			default:
 				currentJournalLine += string(key)
 			}
@@ -321,151 +326,159 @@ func main() {
 			boxHeight = 1 + lines
 		}
 		reservedHeight = terminalHeight - boxHeight - 2
-		drawTree(&buffer, terminalWidth, reservedHeight+2)
+		if !showSettings {
+			drawTree(&buffer, terminalWidth, reservedHeight+2)
 
-		drawBox(&buffer, 0, reservedHeight, textBoxBorderWidth, boxHeight+1, FgGreen)
-		buffer.WriteString(fmt.Sprintf("\033[%d;%dH%s%s%s", reservedHeight+1, (textBoxBorderWidth/2)-4, FgGreen, "─Journal─", ColorReset))
-		PrintAt(&buffer, 2, reservedHeight+1, '>', FgYellow)
+			drawBox(&buffer, 0, reservedHeight, textBoxBorderWidth, boxHeight+1, FgGreen)
+			buffer.WriteString(fmt.Sprintf("\033[%d;%dH%s%s%s", reservedHeight+1, (textBoxBorderWidth/2)-4, FgGreen, "─Journal─", ColorReset))
+			PrintAt(&buffer, 2, reservedHeight+1, '>', FgYellow)
 
-		for i := 0; i < lines; i++ {
-			start := i * currentTextBoxWidth
-			end := start + currentTextBoxWidth
-			if end > len(textToDraw) {
-				end = len(textToDraw)
-			}
-			if start < end {
-				lineSubString := textToDraw[start:end]
-				y := reservedHeight + 2 + i
-				x := 4
-				buffer.WriteString(fmt.Sprintf("\033[%d;%dH", y, x))
-				buffer.WriteString(fmt.Sprint(lineSubString))
+			for i := 0; i < lines; i++ {
+				start := i * currentTextBoxWidth
+				end := start + currentTextBoxWidth
+				if end > len(textToDraw) {
+					end = len(textToDraw)
+				}
+				if start < end {
+					lineSubString := textToDraw[start:end]
+					y := reservedHeight + 2 + i
+					x := 4
+					buffer.WriteString(fmt.Sprintf("\033[%d;%dH", y, x))
+					buffer.WriteString(fmt.Sprint(lineSubString))
 
-			}
-		}
-		if len(currentJournalLine) == 0 {
-			buffer.WriteString(fmt.Sprintf("\033[%d;%dH%s%s%s", reservedHeight+2, 5, FgGray, "Type here! /settings to open settings menu.", ColorReset))
-		}
-		drawBox(&buffer, textBoxBorderWidth, reservedHeight, terminalWidth/3, boxHeight+1, FgYellow)
-
-		buffer.WriteString(fmt.Sprintf("\033[%d;%dH%s%s%s", reservedHeight+1, textBoxBorderWidth+(terminalWidth/3)/2-3, FgYellow, "─TODO─", ColorReset))
-
-		buffer.WriteString(fmt.Sprintf("\033[%d;%dH", reservedHeight+2, textBoxBorderWidth+3))
-		buffer.WriteString(fmt.Sprint(time.Now().Format("Mon, 02 Jan 2006 15:04 MST")))
-		buffer.WriteString(fmt.Sprintf("\033[%d;%dH", reservedHeight+3, textBoxBorderWidth+4))
-		lineNum := 0
-		for _, line := range todoLines {
-			buffer.WriteString(fmt.Sprintf("\033[%d;%dH", reservedHeight+3+lineNum, textBoxBorderWidth+3))
-			todoWidth := terminalWidth - (textBoxBorderWidth + 4)
-			if len(line) > todoWidth {
-				line = line[:todoWidth]
-			}
-			buffer.WriteString(line)
-			lineNum++
-			if lineNum >= terminalHeight-reservedHeight-3 {
-				break
+				}
 			}
 
-		}
-		statusBarY := terminalHeight
-		statusBarText := "Ctrl+C : Quit | /settings: Open Settings"
-		paddedText := fmt.Sprintf("%-*s", terminalWidth, statusBarText)
-		buffer.WriteString(fmt.Sprintf("\033[%d;%dH\033[48;5;235m%s\033[49m", statusBarY, 1, paddedText))
-		select {
-		case input := <-saveJournalChan:
-			f, err := os.OpenFile("journal.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-			if err != nil {
-				log.Println(err)
-			}
-			now := time.Now()
-			formatedTime := now.Format("2006-01-02 15:04:05")
-			if _, err := f.WriteString(formatedTime + " : " + input + "\n"); err != nil {
-				log.Println(err)
-			}
-			f.Close()
+			drawBox(&buffer, textBoxBorderWidth, reservedHeight, terminalWidth/3, boxHeight+1, FgYellow)
 
-			if strings.Contains(input, "scary") || strings.Contains(input, "spooky") {
-				isHacked = true
+			buffer.WriteString(fmt.Sprintf("\033[%d;%dH%s%s%s", reservedHeight+1, textBoxBorderWidth+(terminalWidth/3)/2-3, FgYellow, "─TODO─", ColorReset))
+
+			buffer.WriteString(fmt.Sprintf("\033[%d;%dH", reservedHeight+2, textBoxBorderWidth+3))
+			buffer.WriteString(fmt.Sprint(time.Now().Format("Mon, 02 Jan 2006 15:04 MST")))
+			buffer.WriteString(fmt.Sprintf("\033[%d;%dH", reservedHeight+3, textBoxBorderWidth+4))
+			lineNum := 0
+			for _, line := range todoLines {
+				buffer.WriteString(fmt.Sprintf("\033[%d;%dH", reservedHeight+3+lineNum, textBoxBorderWidth+3))
+				todoWidth := terminalWidth - (textBoxBorderWidth + 4)
+				if len(line) > todoWidth {
+					line = line[:todoWidth]
+				}
+				buffer.WriteString(line)
+				lineNum++
+				if lineNum >= terminalHeight-reservedHeight-3 {
+					break
+				}
+
 			}
-			if strings.Contains(input, "stop") {
-				isHacked = false
+			statusBarY := terminalHeight
+			statusBarText := "Ctrl+C : Quit | /settings: Open Settings"
+			paddedText := fmt.Sprintf("%-*s", terminalWidth, statusBarText)
+			buffer.WriteString(fmt.Sprintf("\033[%d;%dH\033[48;5;235m%s\033[49m", statusBarY, 1, paddedText))
+			select {
+			case input := <-saveJournalChan:
+				f, err := os.OpenFile("journal.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+				if err != nil {
+					log.Println(err)
+				}
+				now := time.Now()
+				formatedTime := now.Format("2006-01-02 15:04:05")
+				if _, err := f.WriteString(formatedTime + " : " + input + "\n"); err != nil {
+					log.Println(err)
+				}
+				f.Close()
+
+				if strings.Contains(input, "scary") || strings.Contains(input, "spooky") {
+					isHacked = true
+				}
+				if strings.Contains(input, "stop") {
+					isHacked = false
+				}
+				if strings.Contains(input, "/settings") {
+					showSettings = true
+				}
+			case <-doneChan:
+				return
+
+			default:
+
 			}
-		case <-doneChan:
-			return
+			for id := range leaves {
+				leaves[id].Y = leaves[id].Y + leaves[id].Speed
 
-		default:
-
-		}
-		for id := range leaves {
-			leaves[id].Y = leaves[id].Y + leaves[id].Speed
-
-			if leaves[id].Y >= reservedHeight {
-				randomX := rand.IntN(terminalWidth - 1)
-				randomY := 0
-				randomCharNum := rand.IntN(5)
-				var randomChar rune
-				if !isHacked {
-					switch randomCharNum {
-					case 0:
-						randomChar = '0'
-					case 1:
-						randomChar = '*'
-					case 2:
-						randomChar = 'o'
-					case 3:
-						randomChar = '¤'
-					case 4:
-						randomChar = '`'
-					default:
-						randomChar = '~'
+				if leaves[id].Y >= reservedHeight {
+					randomX := rand.IntN(terminalWidth - 1)
+					randomY := 0
+					randomCharNum := rand.IntN(5)
+					var randomChar rune
+					if !isHacked {
+						switch randomCharNum {
+						case 0:
+							randomChar = '0'
+						case 1:
+							randomChar = '*'
+						case 2:
+							randomChar = 'o'
+						case 3:
+							randomChar = '¤'
+						case 4:
+							randomChar = '`'
+						default:
+							randomChar = '~'
+						}
+					} else {
+						switch randomCharNum {
+						case 0:
+							randomChar = '?'
+						case 1:
+							randomChar = '!'
+						case 2:
+							randomChar = '%'
+						case 3:
+							randomChar = '$'
+						case 4:
+							randomChar = '\\'
+						default:
+							randomChar = '='
+						}
 					}
-				} else {
-					switch randomCharNum {
-					case 0:
-						randomChar = '?'
-					case 1:
-						randomChar = '!'
-					case 2:
-						randomChar = '%'
-					case 3:
-						randomChar = '$'
-					case 4:
-						randomChar = '\\'
-					default:
-						randomChar = '='
+					randomSpeed := rand.IntN(5)
+					if randomSpeed == 0 {
+						randomSpeed++
 					}
-				}
-				randomSpeed := rand.IntN(5)
-				if randomSpeed == 0 {
-					randomSpeed++
-				}
-				if isHacked {
-					randomSpeed++
-				}
-				var randomColor string
-				randomColorNum := rand.IntN(3)
-				if !isHacked {
-					switch randomColorNum {
-					case 0:
-						randomColor = FgYellow
-					case 1:
+					if isHacked {
+						randomSpeed++
+					}
+					var randomColor string
+					randomColorNum := rand.IntN(3)
+					if !isHacked {
+						switch randomColorNum {
+						case 0:
+							randomColor = FgYellow
+						case 1:
+							randomColor = FgRed
+						case 2:
+							randomColor = FgYellow
+						case 3:
+							randomColor = FgRed
+						}
+					} else {
 						randomColor = FgRed
-					case 2:
-						randomColor = FgYellow
-					case 3:
-						randomColor = FgRed
 					}
+					leaves[id].Y = randomY
+					leaves[id].X = randomX
+					leaves[id].Charactere = randomChar
+					leaves[id].Speed = randomSpeed
+					leaves[id].Color = randomColor
 				} else {
-					randomColor = FgRed
-				}
-				leaves[id].Y = randomY
-				leaves[id].X = randomX
-				leaves[id].Charactere = randomChar
-				leaves[id].Speed = randomSpeed
-				leaves[id].Color = randomColor
-			} else {
-				PrintAt(&buffer, leaves[id].X, leaves[id].Y, leaves[id].Charactere, leaves[id].Color)
+					PrintAt(&buffer, leaves[id].X, leaves[id].Y, leaves[id].Charactere, leaves[id].Color)
 
+				}
 			}
+		} else {
+			drawBox(&buffer, 5, 5, terminalWidth-10, terminalHeight-10, FgBrown)
+			title := "─Settings (Press ESC to quit)─"
+			titleX := 5 + (terminalWidth-len(title))/2
+			buffer.WriteString(fmt.Sprintf("\033[%d;%dH%s%s%s", 6, titleX, FgYellow, title, ColorReset))
 		}
 		screen.Clear()
 		fmt.Print(buffer.String())
