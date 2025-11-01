@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"os"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/inancgumus/screen"
@@ -238,7 +237,6 @@ func main() {
 	var currentJournalLine string
 	var textBoxWidth int
 	var textBoxBorderWidth int
-	var dataMutex sync.Mutex
 	var boxHeight int
 	var frameCount = 0
 	var todoLines []string
@@ -342,8 +340,7 @@ func main() {
 				switch key {
 
 				case 27:
-					screen.Clear()
-					buffer.Reset()
+
 					showSettings = false
 
 				case 's':
@@ -399,10 +396,8 @@ func main() {
 		terminalWidth, terminalHeight, _ = term.GetSize(0)
 		textBoxBorderWidth = (terminalWidth / 3) * 2
 		textBoxWidth = textBoxBorderWidth - 4
-		dataMutex.Lock()
 		textToDraw := currentJournalLine
 		currentTextBoxWidth := textBoxWidth
-		dataMutex.Unlock()
 		var lines int
 		if textBoxWidth > 0 {
 			lines = (len(textToDraw) / textBoxWidth) + 1
@@ -598,7 +593,7 @@ func main() {
 			leafStyleText := "[L]eaf style :"
 			buffer.WriteString(fmt.Sprintf("\033[%d;%dH%s<%s>", 10, 10, leafStyleText, leafStyle))
 
-			showTreeText := "[Tree] : "
+			showTreeText := "[T]ree : "
 			showTreeStatus := "[ON]"
 			if !showTree {
 				showTreeStatus = "[OFF]"
