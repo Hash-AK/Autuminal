@@ -33,6 +33,7 @@ const FgRed = "\033[38;2;150;0;0m"
 const FgGreen = "\033[32m"
 const Italic = "\033[3m"
 const FgYellow = "\033[33m"
+const FgGray = "\033[38;5;255m"
 const Underline = "\033[4m"
 const ColorReset = "\033[0m"
 
@@ -319,7 +320,7 @@ func main() {
 		} else {
 			boxHeight = 1 + lines
 		}
-		reservedHeight = terminalHeight - boxHeight - 1
+		reservedHeight = terminalHeight - boxHeight - 2
 		drawTree(&buffer, terminalWidth, reservedHeight+2)
 
 		drawBox(&buffer, 0, reservedHeight, textBoxBorderWidth, boxHeight+1, FgGreen)
@@ -341,6 +342,9 @@ func main() {
 
 			}
 		}
+		if len(currentJournalLine) == 0 {
+			buffer.WriteString(fmt.Sprintf("\033[%d;%dH%s%s%s", reservedHeight+2, 5, FgGray, "Type here! /settings to open settings menu.", ColorReset))
+		}
 		drawBox(&buffer, textBoxBorderWidth, reservedHeight, terminalWidth/3, boxHeight+1, FgYellow)
 
 		buffer.WriteString(fmt.Sprintf("\033[%d;%dH%s%s%s", reservedHeight+1, textBoxBorderWidth+(terminalWidth/3)/2-3, FgYellow, "─TODO─", ColorReset))
@@ -348,7 +352,6 @@ func main() {
 		buffer.WriteString(fmt.Sprintf("\033[%d;%dH", reservedHeight+2, textBoxBorderWidth+3))
 		buffer.WriteString(fmt.Sprint(time.Now().Format("Mon, 02 Jan 2006 15:04 MST")))
 		buffer.WriteString(fmt.Sprintf("\033[%d;%dH", reservedHeight+3, textBoxBorderWidth+4))
-
 		lineNum := 0
 		for _, line := range todoLines {
 			buffer.WriteString(fmt.Sprintf("\033[%d;%dH", reservedHeight+3+lineNum, textBoxBorderWidth+3))
@@ -363,6 +366,10 @@ func main() {
 			}
 
 		}
+		statusBarY := terminalHeight
+		statusBarText := "Ctrl+C : Quit | /settings: Open Settings"
+		paddedText := fmt.Sprintf("%-*s", terminalWidth, statusBarText)
+		buffer.WriteString(fmt.Sprintf("\033[%d;%dH\033[48;5;235m%s\033[49m", statusBarY, 1, paddedText))
 		select {
 		case input := <-saveJournalChan:
 			f, err := os.OpenFile("journal.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
