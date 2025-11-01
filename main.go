@@ -52,6 +52,7 @@ var tempUnit = "c"
 var enableHacked = true
 var isHacked = false
 var tempChan = make(chan string, 1)
+var tempDescChan = make(chan string, 1)
 
 const treeArt = `
  ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢱⣸⠀⠀⠀⠀⠀⠀⠀⠀⡄⡄⢀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⠀⠀⠀⠀⠀⠀⠀
@@ -199,6 +200,7 @@ func drawBox(buffer *strings.Builder, x, y, width, height int, colorToDraw strin
 func fetchWeather(unit string) {
 	response, err := http.Get("https://wttr.in/?format=j1")
 	var temperature string
+	var WeatherDesc string
 	if err != nil {
 		tempChan <- "Weather N/A"
 	}
@@ -216,12 +218,16 @@ func fetchWeather(unit string) {
 		} else {
 			temperature = current.FeelsLikeF
 		}
+		desc := current.WeatherDesc[0]
+		WeatherDesc = desc.Value
+
 	}
 	finalTemp := strings.Split(strings.TrimSpace(temperature), "\n")
 	tempChan <- finalTemp[0]
+	tempDescChan <- WeatherDesc
+
 }
 func main() {
-	// defered later in the code  : terminalWidth, _, _ := term.GetSize(0)
 	var buffer strings.Builder
 	defer fmt.Printf("\033[?25h")
 
@@ -240,6 +246,7 @@ func main() {
 	var showTree = true
 	var leafStyle = "autumn"
 	var temperature string
+	var weatherDesc string
 	oldState, err := term.MakeRaw(0)
 	if err != nil {
 		panic(err)
@@ -383,6 +390,9 @@ func main() {
 		for len(tempChan) > 0 {
 			temperature = <-tempChan
 		}
+		for len(tempDescChan) > 0 {
+			weatherDesc = <-tempDescChan
+		}
 		if !enableHacked {
 			isHacked = false
 		}
@@ -452,7 +462,7 @@ func main() {
 
 			}
 			statusBarY := terminalHeight
-			statusBarText := "Ctrl+C : Quit | /settings: Open Settings" + " | " + temperature + "°" + tempUnit
+			statusBarText := "Ctrl+C : Quit | /settings: Open Settings" + " | " + weatherDesc + ", " + temperature + "°" + tempUnit
 			paddedText := fmt.Sprintf("%-*s", terminalWidth, statusBarText)
 			buffer.WriteString(fmt.Sprintf("\033[%d;%dH\033[48;5;235m%s\033[49m", statusBarY, 1, paddedText))
 			select {
