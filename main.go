@@ -44,9 +44,12 @@ func SaveTodo(todo []string, file string) {
 	}
 	defer f.Close()
 	for i := range todo {
-		_, err := fmt.Fprintf(f, "%s\n", todo[i])
-		if err != nil {
-			log.Print(err)
+		todo[i] = strings.TrimSpace(todo[i])
+		if todo[i] != "" {
+			_, err := fmt.Fprintf(f, "%s\n", todo[i])
+			if err != nil {
+				log.Print(err)
+			}
 		}
 	}
 
@@ -426,13 +429,14 @@ func main() {
 							selectedTodoItem++
 						}
 					case 'd':
-						if len(todoLines) > 0 {
+						if len(todoLines) > 1 {
 							todoLines = append(todoLines[:selectedTodoItem], todoLines[selectedTodoItem+1:]...)
 
 							if selectedTodoItem > len(todoLines)-1 {
 								selectedTodoItem--
 							}
 							SaveTodo(todoLines, "todo.txt")
+
 						}
 					case 'a':
 						//stuff to add a new todo item
