@@ -539,6 +539,13 @@ func main() {
 			buffer.WriteString(fmt.Sprint(time.Now().Format("Mon, 02 Jan 2006 15:04 MST")))
 			buffer.WriteString(fmt.Sprintf("\033[%d;%dH", reservedHeight+3, textBoxBorderWidth+4))
 			lineNum := 0
+			bufferHeight := 4
+			if activePanel == "todo" && isAddingTodo {
+				bufferHeight = 5
+
+			} else {
+				bufferHeight = 4
+			}
 			for i, line := range todoLines {
 				buffer.WriteString(fmt.Sprintf("\033[%d;%dH", reservedHeight+3+lineNum, textBoxBorderWidth+3))
 				todoWidth := terminalWidth - (textBoxBorderWidth + 4)
@@ -553,10 +560,18 @@ func main() {
 
 				buffer.WriteString(line)
 				lineNum++
-				if lineNum >= terminalHeight-reservedHeight-4 {
+				if lineNum >= terminalHeight-reservedHeight-bufferHeight {
 					break
 				}
 
+			}
+			if activePanel == "todo" && isAddingTodo {
+				inputY := reservedHeight + 3 + lineNum
+				inputX := textBoxBorderWidth + 3
+				prompt := "New: "
+				buffer.WriteString(fmt.Sprintf("\033[%d;%dH%s%s%s", inputY, inputX, FgYellow, prompt, ColorReset))
+				buffer.WriteString(newTodoInput)
+				buffer.WriteString(fmt.Sprintf("\033[?25h\033[%d;%dH", inputY, inputX+len(prompt)+len(newTodoInput)))
 			}
 			statusBarY := terminalHeight
 			statusBarText := "Ctrl+C : Quit | /settings: Open Settings" + " | " + weatherDesc + ", " + temperature + "°" + tempUnit
