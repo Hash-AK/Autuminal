@@ -47,6 +47,8 @@ const FgGray = "\033[38;5;255m"
 const Underline = "\033[4m"
 const ColorReset = "\033[0m"
 
+var activePanel = "journal"
+var selectedTodoItem = 0
 var tempUnit = "c"
 var enableHacked = true
 var isHacked = false
@@ -336,6 +338,14 @@ func main() {
 		}
 		for len(inputChan) > 0 {
 			key := <-inputChan
+			if key == 9 {
+				if activePanel == "journal" {
+					activePanel = "todo"
+				} else if activePanel == "todo" {
+					activePanel = "journal"
+				}
+			}
+
 			if showSettings {
 				switch key {
 
@@ -364,22 +374,39 @@ func main() {
 				}
 
 			} else {
-				switch key {
+				if activePanel == "journal" {
+					switch key {
 
-				case 3:
-					doneChan <- true
-					return
-				case 13:
-					saveJournalChan <- currentJournalLine
-					currentJournalLine = ""
+					case 3:
+						doneChan <- true
+						return
+					case 13:
+						saveJournalChan <- currentJournalLine
+						currentJournalLine = ""
 
-				case 8, 127:
-					if len(currentJournalLine) > 0 {
-						currentJournalLine = currentJournalLine[:len(currentJournalLine)-1]
+					case 8, 127:
+						if len(currentJournalLine) > 0 {
+							currentJournalLine = currentJournalLine[:len(currentJournalLine)-1]
+						}
+
+					default:
+						currentJournalLine += string(key)
 					}
-
-				default:
-					currentJournalLine += string(key)
+				} else if activePanel == "todo" {
+					switch key {
+					case 'k':
+						if selectedTodoItem > 0 {
+							selectedTodoItem--
+						}
+					case 'j':
+						if selectedTodoItem < len(todoLines)-1 {
+							selectedTodoItem++
+						}
+					case 'd':
+						//stuff to delete the todoitem
+					case 'a':
+						//stuff to add a new todo item
+					}
 				}
 
 			}
