@@ -255,6 +255,8 @@ func main() {
 	var terminalHeight int
 	var reservedHeight int
 	var currentJournalLine string
+	var newTodoInput = ""
+	var isAddingTodo = false
 	var textBoxWidth int
 	var textBoxBorderWidth int
 	var boxHeight int
@@ -298,11 +300,13 @@ func main() {
 			if n == 1 {
 				inputChan <- buffer[0]
 			} else if n == 3 && buffer[0] == 27 && buffer[1] == 91 {
-				if buffer[2] == 'A' {
-					inputChan <- 'k'
-				}
-				if buffer[2] == 'B' {
-					inputChan <- 'j'
+				if activePanel == "todo" {
+					if buffer[2] == 'A' {
+						inputChan <- 'k'
+					}
+					if buffer[2] == 'B' {
+						inputChan <- 'j'
+					}
 				}
 			}
 		}
@@ -356,11 +360,10 @@ func main() {
 	for {
 		buffer.Reset()
 		frameCount++
-		if frameCount%20 == 0 {
-			todoContent, err := os.ReadFile("todo.txt")
-			if err == nil {
-				todoLines = strings.Split(string(todoContent), "\n")
-			}
+		todoContent, err := os.ReadFile("todo.txt")
+		if err == nil {
+			todoLines = strings.Split(string(todoContent), "\n")
+
 		}
 		for len(inputChan) > 0 {
 			key := <-inputChan
@@ -398,8 +401,32 @@ func main() {
 					}
 					go fetchWeather(tempUnit)
 				}
-
+				continue
 			} else {
+				if isAddingTodo {
+					switch key {
+					case 13:
+						if strings.TrimSpace(newTodoInput) != "" {
+							todoLines = append(todoLines, newTodoInput)
+							SaveTodo(todoLines, "todo.txt")
+						}
+						isAddingTodo = false
+						newTodoInput = ""
+					case 8, 127:
+						if len(newTodoInput) > 0 {
+							newTodoInput = newTodoInput[:len(newTodoInput)-1]
+						}
+
+					case 27:
+						isAddingTodo = false
+						newTodoInput = ""
+
+					default:
+						newTodoInput += string(key)
+
+					}
+					continue
+				}
 				if activePanel == "journal" {
 					switch key {
 
@@ -418,6 +445,7 @@ func main() {
 					default:
 						currentJournalLine += string(key)
 					}
+					continue
 				} else if activePanel == "todo" {
 					switch key {
 					case 'k':
@@ -439,12 +467,15 @@ func main() {
 
 						}
 					case 'a':
-						//stuff to add a new todo item
+						isAddingTodo = true
+						newTodoInput = ""
+						continue
 
 					case 3:
 						doneChan <- true
 						return
 					}
+					continue
 				}
 
 			}
@@ -516,7 +547,7 @@ func main() {
 				}
 				if activePanel == "todo" {
 					if i == selectedTodoItem {
-						line = fmt.Sprintf("%s%s%s", FgRed, "*", ColorReset) + line
+						line = fmt.Sprintf("%s%s%s", FgRed, ">", ColorReset) + line
 					}
 				}
 
