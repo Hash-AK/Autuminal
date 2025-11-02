@@ -273,12 +273,20 @@ func main() {
 	saveJournalChan := make(chan string, 1)
 	go func() {
 
-		buffer := make([]byte, 1)
+		buffer := make([]byte, 3)
 
 		for {
-			os.Stdin.Read(buffer)
-			inputChan <- buffer[0]
-
+			n, _ := os.Stdin.Read(buffer)
+			if n == 1 {
+				inputChan <- buffer[0]
+			} else if n == 3 && buffer[0] == 27 && buffer[1] == 91 {
+				if buffer[2] == 'A' {
+					inputChan <- 'k'
+				}
+				if buffer[2] == 'B' {
+					inputChan <- 'j'
+				}
+			}
 		}
 	}()
 	go func() {
@@ -406,6 +414,10 @@ func main() {
 						//stuff to delete the todoitem
 					case 'a':
 						//stuff to add a new todo item
+
+					case 3:
+						doneChan <- true
+						return
 					}
 				}
 
@@ -470,12 +482,18 @@ func main() {
 			buffer.WriteString(fmt.Sprint(time.Now().Format("Mon, 02 Jan 2006 15:04 MST")))
 			buffer.WriteString(fmt.Sprintf("\033[%d;%dH", reservedHeight+3, textBoxBorderWidth+4))
 			lineNum := 0
-			for _, line := range todoLines {
+			for i, line := range todoLines {
 				buffer.WriteString(fmt.Sprintf("\033[%d;%dH", reservedHeight+3+lineNum, textBoxBorderWidth+3))
 				todoWidth := terminalWidth - (textBoxBorderWidth + 4)
 				if len(line) > todoWidth {
 					line = line[:todoWidth]
 				}
+				if activePanel == "todo" {
+					if i == selectedTodoItem {
+						line = fmt.Sprintf("%s%s%s", FgRed, "*", ColorReset) + line
+					}
+				}
+
 				buffer.WriteString(line)
 				lineNum++
 				if lineNum >= terminalHeight-reservedHeight-3 {
