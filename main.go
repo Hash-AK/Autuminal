@@ -36,6 +36,21 @@ func PrintAt(buffer *strings.Builder, x, y int, char rune, printColor string) {
 	buffer.WriteString(output)
 	//fmt.Print(x, ", ", y)i col
 }
+func SaveTodo(todo []string, file string) {
+	os.Truncate(file, 0)
+	f, err := os.OpenFile(file, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		log.Print(err)
+	}
+	defer f.Close()
+	for i := range todo {
+		_, err := fmt.Fprintf(f, "%s\n", todo[i])
+		if err != nil {
+			log.Print(err)
+		}
+	}
+
+}
 
 // const FgBrown = "\033[38;5;130m"
 const FgBrown = "\033[38;2;150;67;33m"
@@ -411,7 +426,14 @@ func main() {
 							selectedTodoItem++
 						}
 					case 'd':
-						//stuff to delete the todoitem
+						if len(todoLines) > 0 {
+							todoLines = append(todoLines[:selectedTodoItem], todoLines[selectedTodoItem+1:]...)
+
+							if selectedTodoItem > len(todoLines)-1 {
+								selectedTodoItem--
+							}
+							SaveTodo(todoLines, "todo.txt")
+						}
 					case 'a':
 						//stuff to add a new todo item
 
@@ -496,7 +518,7 @@ func main() {
 
 				buffer.WriteString(line)
 				lineNum++
-				if lineNum >= terminalHeight-reservedHeight-3 {
+				if lineNum >= terminalHeight-reservedHeight-4 {
 					break
 				}
 
