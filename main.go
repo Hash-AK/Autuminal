@@ -65,6 +65,7 @@ const FgGray = "\033[38;5;255m"
 const Underline = "\033[4m"
 const ColorReset = "\033[0m"
 
+var todoScrollOffet = 0
 var activePanel = "journal"
 var selectedTodoItem = 0
 var tempUnit = "c"
@@ -365,6 +366,8 @@ func main() {
 			todoLines = strings.Split(string(todoContent), "\n")
 
 		}
+		todoPanelHeight := terminalHeight - reservedHeight - 4
+
 		for len(inputChan) > 0 {
 			key := <-inputChan
 			if key == 9 {
@@ -451,10 +454,16 @@ func main() {
 					case 'k':
 						if selectedTodoItem > 0 {
 							selectedTodoItem--
+							if selectedTodoItem < todoScrollOffet {
+								todoScrollOffet--
+							}
 						}
 					case 'j':
 						if selectedTodoItem < len(todoLines)-1 {
 							selectedTodoItem++
+						}
+						if selectedTodoItem >= todoScrollOffet+todoPanelHeight {
+							todoScrollOffet++
 						}
 					case 'd':
 						if len(todoLines) > 1 {
@@ -507,6 +516,7 @@ func main() {
 			boxHeight = 1 + lines
 		}
 		reservedHeight = terminalHeight - boxHeight - 2
+
 		if !showSettings {
 			if showTree {
 				drawTree(&buffer, terminalWidth, reservedHeight+2)
@@ -539,14 +549,15 @@ func main() {
 			buffer.WriteString(fmt.Sprint(time.Now().Format("Mon, 02 Jan 2006 15:04 MST")))
 			buffer.WriteString(fmt.Sprintf("\033[%d;%dH", reservedHeight+3, textBoxBorderWidth+4))
 			lineNum := 0
-			bufferHeight := 4
+			bufferHeight := 0
 			if activePanel == "todo" && isAddingTodo {
-				bufferHeight = 5
-
-			} else {
-				bufferHeight = 4
+				bufferHeight = bufferHeight + 1
 			}
-			for i, line := range todoLines {
+			for i := todoScrollOffet; i < len(todoLines); i++ {
+				if lineNum >= todoPanelHeight {
+					break
+				}
+				line := todoLines[i]
 				buffer.WriteString(fmt.Sprintf("\033[%d;%dH", reservedHeight+3+lineNum, textBoxBorderWidth+3))
 				todoWidth := terminalWidth - (textBoxBorderWidth + 4)
 				if len(line) > todoWidth {
@@ -560,7 +571,7 @@ func main() {
 
 				buffer.WriteString(line)
 				lineNum++
-				if lineNum >= terminalHeight-reservedHeight-bufferHeight {
+				if lineNum >= todoPanelHeight-bufferHeight {
 					break
 				}
 
