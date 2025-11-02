@@ -264,6 +264,7 @@ func main() {
 	var frameCount = 0
 	var todoLines []string
 	var showSettings = false
+	var showHelp = false
 	var showTree = true
 	var leafStyle = "autumn"
 	var temperature string
@@ -405,6 +406,11 @@ func main() {
 					go fetchWeather(tempUnit)
 				}
 				continue
+			} else if showHelp {
+				switch key {
+				case 27:
+					showHelp = false
+				}
 			} else {
 				if isAddingTodo {
 					switch key {
@@ -517,7 +523,7 @@ func main() {
 		}
 		reservedHeight = terminalHeight - boxHeight - 2
 
-		if !showSettings {
+		if !showSettings && !showHelp {
 			if showTree {
 				drawTree(&buffer, terminalWidth, reservedHeight+2)
 			}
@@ -585,7 +591,7 @@ func main() {
 				buffer.WriteString(fmt.Sprintf("\033[?25h\033[%d;%dH", inputY, inputX+len(prompt)+len(newTodoInput)))
 			}
 			statusBarY := terminalHeight
-			statusBarText := "Ctrl+C : Quit | /settings: Open Settings" + " | " + weatherDesc + ", " + temperature + "°" + tempUnit
+			statusBarText := "Ctrl+C : Quit | /settings: Open Settings | Tab: switch to the other pannel | /help: open help menu| " + weatherDesc + ", " + temperature + "°" + tempUnit
 			paddedText := fmt.Sprintf("%-*s", terminalWidth, statusBarText)
 			buffer.WriteString(fmt.Sprintf("\033[%d;%dH\033[48;5;235m%s\033[49m", statusBarY, 1, paddedText))
 			select {
@@ -613,6 +619,9 @@ func main() {
 
 				if strings.Contains(input, "/settings") {
 					showSettings = true
+				}
+				if strings.Contains(input, "/help") && !showSettings {
+					showHelp = true
 				}
 			case <-doneChan:
 				return
@@ -707,7 +716,33 @@ func main() {
 
 				}
 			}
-		} else {
+		} else if showHelp && !showSettings {
+			drawBox(&buffer, 5, 5, terminalWidth-10, terminalHeight-10, FgBrown)
+			title := "─Help (Press ESC to quit)─"
+			titleX := 5 + (terminalWidth-len(title))/2
+			buffer.WriteString(fmt.Sprintf("\033[%d;%dH%s%s%s", 6, titleX, FgBrown, title, ColorReset))
+			helpline1 := "[*] Ctrl+C while in main screen : exit"
+			helpline2 := "[*] /settings in the journal box : open the settings"
+			helpline3 := "[*] /help in the journal box : open this help menu"
+			helpline4 := "[*] ESC while in settings/help menu : quit the menu"
+			helpline5 := "[*] Tab while in main menu : change the active zone (journal or todo)"
+			helpline6 := "[*] 'a' while in todo : open add todo mode"
+			helpline7 := "[*] Up/Down/j/k while in todo : move/scroll the selected todo item"
+			helpline8 := "[*] 'd' while having a todo entry selected : delete the entry"
+			helpline9 := "[*] ESC while in todo add mdde : exit the todo add mode"
+
+			buffer.WriteString(fmt.Sprintf("\033[%d;%dH%s", 8, 10, helpline1))
+			buffer.WriteString(fmt.Sprintf("\033[%d;%dH%s", 9, 10, helpline2))
+			buffer.WriteString(fmt.Sprintf("\033[%d;%dH%s", 10, 10, helpline3))
+			buffer.WriteString(fmt.Sprintf("\033[%d;%dH%s", 11, 10, helpline4))
+			buffer.WriteString(fmt.Sprintf("\033[%d;%dH%s", 12, 10, helpline5))
+			buffer.WriteString(fmt.Sprintf("\033[%d;%dH%s", 13, 10, helpline6))
+			buffer.WriteString(fmt.Sprintf("\033[%d;%dH%s", 14, 10, helpline7))
+			buffer.WriteString(fmt.Sprintf("\033[%d;%dH%s", 15, 10, helpline8))
+			buffer.WriteString(fmt.Sprintf("\033[%d;%dH%s", 16, 10, helpline9))
+
+		} else if showSettings && !showHelp {
+
 			drawBox(&buffer, 5, 5, terminalWidth-10, terminalHeight-10, FgBrown)
 			title := "─Settings (Press ESC to quit)─"
 			titleX := 5 + (terminalWidth-len(title))/2
