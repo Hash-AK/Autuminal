@@ -300,7 +300,7 @@ func main() {
 			if n == 1 {
 				inputChan <- buffer[0]
 			} else if n == 3 && buffer[0] == 27 && buffer[1] == 91 {
-				if activePanel == "todo" {
+				if activePanel == "todo" && !isAddingTodo {
 					if buffer[2] == 'A' {
 						inputChan <- 'k'
 					}
