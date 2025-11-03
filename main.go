@@ -362,19 +362,37 @@ func main() {
 	for {
 		buffer.Reset()
 		frameCount++
+		terminalWidth, terminalHeight, _ = term.GetSize(0)
+
 		todoContent, err := os.ReadFile("todo.txt")
 		if err == nil {
 			todoLines = strings.Split(string(todoContent), "\n")
 
 		}
+		textBoxBorderWidth = (terminalWidth / 3) * 2
+		textBoxWidth = textBoxBorderWidth - 4
+		var lines int
+		if textBoxWidth > 0 {
+			lines = (len(currentJournalLine) / textBoxWidth) + 1
+		} else {
+			lines = 1
+		}
+		if lines < 4 {
+			boxHeight = 4
+
+		} else {
+			boxHeight = 1 + lines
+		}
+		reservedHeight = terminalHeight - boxHeight - 2
 		todoPanelHeight := terminalHeight - reservedHeight - 4
 
 		for len(inputChan) > 0 {
 			key := <-inputChan
 			if key == 9 {
-				if activePanel == "journal" {
+				switch activePanel {
+				case "journal":
 					activePanel = "todo"
-				} else if activePanel == "todo" {
+				case "todo":
 					activePanel = "journal"
 				}
 			}
@@ -504,24 +522,9 @@ func main() {
 		if !enableHacked {
 			isHacked = false
 		}
-		terminalWidth, terminalHeight, _ = term.GetSize(0)
-		textBoxBorderWidth = (terminalWidth / 3) * 2
-		textBoxWidth = textBoxBorderWidth - 4
+
 		textToDraw := currentJournalLine
 		currentTextBoxWidth := textBoxWidth
-		var lines int
-		if textBoxWidth > 0 {
-			lines = (len(textToDraw) / textBoxWidth) + 1
-		} else {
-			lines = 1
-		}
-		if lines < 4 {
-			boxHeight = 4
-
-		} else {
-			boxHeight = 1 + lines
-		}
-		reservedHeight = terminalHeight - boxHeight - 2
 
 		if !showSettings && !showHelp {
 			if showTree {
@@ -581,6 +584,30 @@ func main() {
 					break
 				}
 
+			}
+			if len(todoLines) > todoPanelHeight {
+				tumbHeight := 1
+				if len(todoLines) > 0 && todoPanelHeight > 0 {
+					tumbHeight = int(float64(todoPanelHeight) / float64(len(todoLines)) * float64(todoPanelHeight))
+
+				}
+				if tumbHeight < 1 {
+					tumbHeight = 1
+				}
+				thumbY := 0
+				if len(todoLines) > 0 && todoPanelHeight > 0 {
+					thumbY = int(float64(todoScrollOffet) / float64(len(todoLines)) * float64(todoPanelHeight))
+
+				}
+				scrollX := terminalWidth - 2
+				for i := 0; i < todoPanelHeight; i++ {
+					y := reservedHeight + 3 + i
+					if i >= thumbY && i < thumbY+tumbHeight {
+						PrintAt(&buffer, scrollX, y, '█', FgGray)
+					} else {
+						PrintAt(&buffer, scrollX, y, '|', FgGray)
+					}
+				}
 			}
 			if activePanel == "todo" && isAddingTodo {
 				inputY := reservedHeight + 3 + lineNum
