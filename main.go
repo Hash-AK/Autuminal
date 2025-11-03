@@ -599,14 +599,16 @@ func main() {
 					thumbY = int(float64(todoScrollOffet) / float64(len(todoLines)) * float64(todoPanelHeight))
 
 				}
-				scrollX := terminalWidth - 2
+				scrollX := textBoxBorderWidth + (terminalWidth / 3) - 2
+				startY := reservedHeight + 2
 				for i := 0; i < todoPanelHeight; i++ {
-					y := reservedHeight + 3 + i
+					y := startY + i
 					if i >= thumbY && i < thumbY+tumbHeight {
 						PrintAt(&buffer, scrollX, y, '█', FgGray)
 					} else {
 						PrintAt(&buffer, scrollX, y, '|', FgGray)
 					}
+
 				}
 			}
 			if activePanel == "todo" && isAddingTodo {
